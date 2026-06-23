@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>猜猜看</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+}
+
+.page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 30px;
+  padding-top: env(safe-area-inset-top, 40px);
+  padding-bottom: env(safe-area-inset-bottom, 40px);
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.page.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.page.exit-left {
+  opacity: 0;
+  transform: translateX(-30%);
+}
+
+/* 第一页特殊：淡入而非滑入 */
+.page:first-child {
+  transform: none;
+  opacity: 0;
+}
+.page:first-child.active {
+  opacity: 1;
+  transform: none;
+}
+
+/* 背景色 */
+.bg-cream { background: #fffef7; }
+.bg-green { background: #e8f5e9; }
+.bg-blue { background: #e3f2fd; }
+.bg-warm { background: #fff8e1; }
+.bg-pink { background: #fce4ec; }
+.bg-reveal { background: linear-gradient(135deg, #e8f5e9 0%, #fffef7 100%); }
+.bg-menu { background: linear-gradient(180deg, #e8f5e9 0%, #fffef7 40%, #fffef7 100%); }
+
+/* 内容样式 */
+.emoji-big {
+  font-size: 60px;
+  margin-bottom: 30px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.clue-text {
+  font-size: 22px;
+  color: #333;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 50px;
+  font-weight: 500;
+}
+
+.clue-label {
+  font-size: 13px;
+  color: #999;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.btn {
+  padding: 14px 40px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn-primary {
+  background: #66bb6a;
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 187, 106, 0.3);
+}
+
+.btn-light {
+  background: white;
+  color: #66bb6a;
+  border: 2px solid #66bb6a;
+}
+
+/* 揭晓页 */
+.reveal-photo {
+  width: 200px;
+  height: 200px;
+  border-radius: 20px;
+  object-fit: cover;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.reveal-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-placeholder {
+  color: #ccc;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+.reveal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2e7d32;
+  margin-bottom: 8px;
+}
+
+.reveal-desc {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 40px;
+}
+
+.page.active .reveal-content {
+  animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* 菜单页 */
+.menu-container {
+  width: 100%;
+  max-width: 350px;
+  overflow-y: auto;
+  max-height: 85vh;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 5px;
+}
+
+.menu-header {
+  text-align: center;
+  margin-bottom: 25px;
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.menu-header.show {
+  animation: dropIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes dropIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menu-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.menu-subtitle {
+  font-size: 13px;
+  color: #999;
+  margin-top: 5px;
+}
+
+.menu-section-label {
+  font-size: 13px;
+  color: #66bb6a;
+  font-weight: 600;
+  margin: 18px 0 10px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+}
+
+.menu-section-label.show {
+  animation: fadeSlideUp 0.4s ease forwards;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: white;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transition: transform 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.menu-item.show {
+  animation: cardBounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.menu-item:active {
+  transform: scale(0.96) rotate(-1deg) !important;
+}
+
+.menu-item.wiggle {
+  animation: wiggle 0.5s ease;
+}
+
+@keyframes cardBounceIn {
+  0% { opacity: 0; transform: translateY(30px) scale(0.8) rotate(-2deg); }
+  60% { opacity: 1; transform: translateY(-5px) scale(1.02) rotate(0.5deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+}
+
+@keyframes fadeSlideUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-3deg); }
+  40% { transform: rotate(3deg); }
+  60% { transform: rotate(-2deg); }
+  80% { transform: rotate(1deg); }
+}
+
+.menu-item-emoji {
+  font-size: 28px;
+  min-width: 36px;
+  text-align: center;
+}
+
+.menu-item-info {
+  flex: 1;
+}
+
+.menu-item-name {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.menu-item-desc {
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.menu-item-tag {
+  font-size: 11px;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  color: #f57c00;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.menu-footer {
+  text-align: center;
+  font-size: 13px;
+  color: #aaa;
+  margin-top: 24px;
+  padding-bottom: 30px;
+  opacity: 0;
+}
+
+.menu-footer.show {
+  animation: fadeSlideUp 0.5s ease 0.2s forwards;
+}
+
+.menu-footer-line {
+  width: 40px;
+  height: 2px;
+  background: #e0e0e0;
+  border-radius: 1px;
+  margin: 0 auto 10px;
+}
+
+/* 进度指示 */
+.progress-dots {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+
+.progress-dots.hidden {
+  display: none;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: all 0.3s;
+}
+
+.dot.active {
+  background: #66bb6a;
+  width: 20px;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- Page 1: 开场 -->
+<div class="page bg-cream active" id="page-0">
+  <div class="emoji-big">🎁</div>
+  <div class="clue-text">猜猜今天给你做了什么？</div>
+  <button class="btn btn-primary" onclick="nextPage()">来吧</button>
+</div>
+
+<!-- Page 2: 线索1 -->
+<div class="page bg-green" id="page-1">
+  <div class="clue-label">线索一</div>
+  <div class="emoji-big">🟢</div>
+  <div class="clue-text">它是绿色的</div>
+  <button class="btn btn-primary" onclick="nextPage()">继续</button>
+</div>
+
+<!-- Page 3: 线索2 -->
+<div class="page bg-blue" id="page-2">
+  <div class="clue-label">线索二</div>
+  <div class="emoji-big">🧊</div>
+  <div class="clue-text">冰冰凉凉的</div>
+  <button class="btn btn-primary" onclick="nextPage()">继续</button>
+</div>
+
+<!-- Page 4: 线索3 -->
+<div class="page bg-warm" id="page-3">
+  <div class="clue-label">线索三</div>
+  <div class="emoji-big">💭</div>
+  <div class="clue-text">上次做过<br>你说好喝</div>
+  <button class="btn btn-primary" onclick="nextPage()">我知道了！</button>
+</div>
+
+<!-- Page 5: 线索4 -->
+<div class="page bg-pink" id="page-4">
+  <div class="clue-label">线索四</div>
+  <div class="emoji-big">✨</div>
+  <div class="clue-text">这次加了秘密武器<br>会甜甜的~</div>
+  <button class="btn btn-primary" onclick="nextPage()">揭晓！</button>
+</div>
+
+<!-- Page 6: 揭晓 -->
+<div class="page bg-reveal" id="page-5">
+  <div class="reveal-content">
+    <div class="reveal-photo">
+      <!-- 把下面的 src 替换成你拍的真实照片路径 -->
+      <img src="" onerror="this.parentElement.innerHTML='<div class=photo-placeholder>拍好照片后<br>替换这里的 src</div>'" alt="黄瓜冰浆">
+    </div>
+    <div class="reveal-title">黄瓜冰浆 · 布丁升级版</div>
+    <div class="reveal-desc">加了小布丁，这次是甜的 :)</div>
+    <button class="btn btn-primary" onclick="showMenu()">看看你的专属菜单 →</button>
+  </div>
+</div>
+
+<!-- Page 7: 菜单 -->
+<div class="page bg-menu" id="page-menu">
+  <div class="menu-container">
+    <div class="menu-header" id="menu-header">
+      <div class="menu-title">🧊🧊的专属小馆</div>
+      <div class="menu-subtitle">只为你营业</div>
+    </div>
+
+    <div class="menu-section-label" data-delay="200">🥤 饮品</div>
+
+    <div class="menu-item" data-delay="350" onclick="wiggleItem(this)">
+      <span class="menu-item-emoji">🍵</span>
+      <div class="menu-item-info">
+        <div class="menu-item-name">原叶糯米酸奶</div>
+        <div class="menu-item-desc">茶香配糯叽叽</div>
+      </div>
+    </div>
+
+    <div class="menu-item" data-delay="480" onclick="wiggleItem(this)">
+      <span class="menu-item-emoji">🥭</span>
+      <div class="menu-item-info">
+        <div class="menu-item-name">芒果糯米酸奶</div>
+        <div class="menu-item-desc">热带风味拉满</div>
+      </div>
+    </div>
+
+    <div class="menu-item" data-delay="610" onclick="wiggleItem(this)">
+      <span class="menu-item-emoji">🥒</span>
+      <div class="menu-item-info">
+        <div class="menu-item-name">黄瓜冰浆</div>
+        <div class="menu-item-desc">升级版·加了小布丁</div>
+      </div>
+      <span class="menu-item-tag">今日特供</span>
+    </div>
+
+    <div class="menu-section-label" data-delay="750">🍳 菜品</div>
+
+    <div class="menu-item" data-delay="880" onclick="wiggleItem(this)">
+      <span class="menu-item-emoji">🍗</span>
+      <div class="menu-item-info">
+        <div class="menu-item-name">可乐鸡翅</div>
+        <div class="menu-item-desc">甜口小炸弹</div>
+      </div>
+    </div>
+
+    <div class="menu-item" data-delay="1010" onclick="wiggleItem(this)">
+      <span class="menu-item-emoji">🥔</span>
+      <div class="menu-item-info">
+        <div class="menu-item-name">酸辣土豆丝</div>
+        <div class="menu-item-desc">脆脆的下饭神器</div>
+      </div>
+    </div>
+
+    <div class="menu-item" data-delay="1140" onclick="wiggleItem(this)">
+      <span class="menu-item-emoji">🍅</span>
+      <div class="menu-item-info">
+        <div class="menu-item-name">西红柿炒鸡蛋</div>
+        <div class="menu-item-desc">经典永不过时</div>
+      </div>
+    </div>
+
+    <div class="menu-item" data-delay="1270" onclick="wiggleItem(this)">
+      <span class="menu-item-emoji">🫚</span>
+      <div class="menu-item-info">
+        <div class="menu-item-name">辣炒鸡胗</div>
+        <div class="menu-item-desc">嘎嘣脆有嚼劲</div>
+      </div>
+    </div>
+
+    <div class="menu-footer" id="menu-footer">
+      <div class="menu-footer-line"></div>
+      菜单持续更新中，敬请期待~
+    </div>
+  </div>
+</div>
+
+<!-- 进度指示点 -->
+<div class="progress-dots" id="dots">
+  <div class="dot active"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
+
+<script>
+let current = 0;
+const totalClue = 6;
+const pages = document.querySelectorAll('.page');
+const dots = document.querySelectorAll('.dot');
+const dotsContainer = document.getElementById('dots');
+
+function nextPage() {
+  if (current >= totalClue - 1) return;
+  pages[current].classList.remove('active');
+  pages[current].classList.add('exit-left');
+  current++;
+  pages[current].classList.add('active');
+  updateDots();
+}
+
+function showMenu() {
+  pages[current].classList.remove('active');
+  pages[current].classList.add('exit-left');
+  dotsContainer.classList.add('hidden');
+  document.getElementById('page-menu').classList.add('active');
+  animateMenu();
+}
+
+function animateMenu() {
+  document.getElementById('menu-header').classList.add('show');
+
+  const items = document.querySelectorAll('#page-menu .menu-item, #page-menu .menu-section-label');
+  items.forEach(item => {
+    const delay = parseInt(item.dataset.delay) || 0;
+    setTimeout(() => item.classList.add('show'), delay);
+  });
+
+  const footer = document.getElementById('menu-footer');
+  setTimeout(() => footer.classList.add('show'), 1500);
+}
+
+function wiggleItem(el) {
+  el.classList.remove('wiggle');
+  void el.offsetWidth;
+  el.classList.add('wiggle');
+}
+
+function updateDots() {
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('active', i === current);
+  });
+  if (current >= totalClue - 1) {
+    dotsContainer.classList.add('hidden');
+  }
+}
+</script>
+</body>
+</html>
