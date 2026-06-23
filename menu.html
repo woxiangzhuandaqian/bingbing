@@ -92,7 +92,7 @@ body { overflow-y: auto; }
 
 /* 右下角浮动区域 */
 .float-area {
-  position: fixed; bottom: 20px; right: 20px; z-index: 150;
+  position: fixed; bottom: 5px; right: 20px; z-index: 150;
   display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
 }
 
@@ -363,14 +363,14 @@ function addFromMenu(key, btnEl) {
     btnEl.textContent = '+';
     btnEl.classList.remove('added');
     updateCartBadge();
-    showAddToast('已移除，当前 ' + cart.length + ' 道菜');
+    showAddToast('放回去咯~ 还剩 ' + cart.length + ' 道');
   } else {
     cart.push(key);
     Store.set('cart', cart);
     btnEl.textContent = '✓';
     btnEl.classList.add('added');
     updateCartBadge();
-    showAddToast('已选 ' + cart.length + ' 道菜，点 ♡ 下单~');
+    showAddToast('拿走啦~ 已选 ' + cart.length + ' 道，戳 ♡ 下单吧');
     if (cart.length === Object.keys(dishData).length) checkAchievements('select_all');
   }
 }
