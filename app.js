@@ -197,11 +197,6 @@ function getVisitorId() {
 
 function trackVisit() {
   if (!FEISHU_WEBHOOK) return;
-  const key = 'lastVisit_' + location.pathname;
-  const lastVisit = parseInt(localStorage.getItem(key) || '0');
-  const now = Date.now();
-  if (now - lastVisit < 5 * 60 * 1000) return;
-  localStorage.setItem(key, now.toString());
 
   const ua = navigator.userAgent;
   let device = '其他';
