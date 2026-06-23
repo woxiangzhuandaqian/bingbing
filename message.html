@@ -60,6 +60,7 @@ function addMessage() {
   input.value = '';
   renderMessages();
   checkAchievements('message');
+  sendNotification('bingbing留言：' + text);
 }
 
 function formatTime(ts) {

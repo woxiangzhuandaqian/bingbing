@@ -77,6 +77,7 @@ function addWish() {
   Store.set('wishlist', list);
   input.value = '';
   renderWishlist();
+  sendNotification('bingbing许了个愿：' + text);
 }
 
 function formatDate(ts) {
