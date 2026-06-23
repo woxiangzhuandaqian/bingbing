@@ -15,12 +15,11 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 /* 许愿池 */
 .pool-area {
   flex: 1; position: relative; overflow: hidden; padding: 20px;
-  display: flex; flex-wrap: wrap; align-content: flex-start;
-  justify-content: center; gap: 20px; padding-bottom: 100px;
+  padding-bottom: 100px;
 }
 
 .star-wish {
-  position: relative; cursor: pointer; transition: transform 0.3s;
+  position: absolute; cursor: pointer; transition: transform 0.3s;
   display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
 .star-wish:active { transform: scale(1.2); }
@@ -150,13 +149,34 @@ function renderWishlist() {
     area.innerHTML = '<div class="pool-empty"><div class="pool-empty-emoji">🌙</div><div class="pool-empty-text">女王陛下还没有许愿哦~<br>投一枚硬币，说出你想吃的</div></div>';
     return;
   }
+  const positions = generatePositions(list.length);
   area.innerHTML = list.map((item, i) => {
     const done = item.done;
-    return '<div class="star-wish ' + (done ? 'done' : '') + '" onclick="showWishDetail(' + i + ')">' +
+    const pos = positions[i];
+    return '<div class="star-wish ' + (done ? 'done' : '') + '" style="left:' + pos.x + '%;top:' + pos.y + '%" onclick="showWishDetail(' + i + ')">' +
       '<span class="star-icon">' + (done ? '🌟' : '⭐') + '</span>' +
       '<span class="star-label">' + item.text + '</span>' +
     '</div>';
   }).join('');
+}
+
+function generatePositions(count) {
+  const positions = [];
+  for (let i = 0; i < count; i++) {
+    let x, y, ok;
+    let attempts = 0;
+    do {
+      x = 10 + Math.random() * 70;
+      y = 5 + Math.random() * 75;
+      ok = true;
+      for (const p of positions) {
+        if (Math.abs(p.x - x) < 18 && Math.abs(p.y - y) < 12) { ok = false; break; }
+      }
+      attempts++;
+    } while (!ok && attempts < 30);
+    positions.push({ x, y });
+  }
+  return positions;
 }
 
 function addWish() {
