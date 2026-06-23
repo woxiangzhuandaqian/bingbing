@@ -170,7 +170,7 @@ function sendNotification(text) {
   if (!FEISHU_WEBHOOK) return;
   console.log('[通知] 发送:', text);
   const data = JSON.stringify({ msg_type: 'text', content: { text: text } });
-  const blob = new Blob([data], { type: 'application/json' });
+  const blob = new Blob([data], { type: 'text/plain' });
   const sent = navigator.sendBeacon(FEISHU_WEBHOOK, blob);
   console.log('[通知] sendBeacon结果:', sent);
 }
