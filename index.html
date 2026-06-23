@@ -114,7 +114,7 @@ const chatMessages = [
 let quizAnswered = false;
 
 if (Store.get('played', false)) {
-  document.getElementById('skip-btn').style.display = 'block';
+  location.href = 'menu.html';
 }
 
 function startChat() {
@@ -194,7 +194,7 @@ function showReveal() {
 
 function enterHome() {
   Store.set('played', true);
-  location.href = 'home.html';
+  location.href = 'menu.html';
 }
 </script>
 </body>
