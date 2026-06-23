@@ -41,7 +41,7 @@ html, body {
 #page-menu {
   justify-content: flex-start;
   padding-top: 50px;
-  padding-bottom: 50px;
+  padding-bottom: 30px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
@@ -322,7 +322,7 @@ html, body {
   overflow-y: auto;
   max-height: 100%;
   -webkit-overflow-scrolling: touch;
-  padding: 0 5px 80px;
+  padding: 0 5px 30px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -356,6 +356,130 @@ html, body {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
+}
+
+/* 随机推荐 */
+.random-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 10px 20px;
+  background: white;
+  border: 1.5px dashed #66bb6a;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #66bb6a;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.3s;
+}
+
+.random-btn:active {
+  transform: scale(0.95);
+  background: #e8f5e9;
+}
+
+.random-btn-icon {
+  font-size: 18px;
+  display: inline-block;
+  transition: transform 0.5s;
+}
+
+.random-btn.spinning .random-btn-icon {
+  animation: spin 0.5s ease;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 随机结果弹窗 */
+.random-result {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.random-result.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.random-card {
+  background: white;
+  border-radius: 20px;
+  padding: 32px 28px;
+  text-align: center;
+  width: 80%;
+  max-width: 300px;
+  transform: scale(0.8) rotate(-5deg);
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.random-result.show .random-card {
+  transform: scale(1) rotate(0deg);
+}
+
+.random-card-emoji {
+  font-size: 50px;
+  margin-bottom: 12px;
+}
+
+.random-card-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.random-card-desc {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 20px;
+}
+
+.random-card-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.random-card-btn {
+  padding: 10px 20px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  border: none;
+  transition: all 0.2s;
+}
+
+.random-card-btn:active {
+  transform: scale(0.95);
+}
+
+.random-card-btn.primary {
+  background: #66bb6a;
+  color: white;
+}
+
+.random-card-btn.secondary {
+  background: #f5f5f5;
+  color: #666;
 }
 
 .menu-section-label {
@@ -876,6 +1000,10 @@ html, body {
     <div class="menu-header" id="menu-header">
       <div class="menu-title">🧊🧊的专属小馆</div>
       <div class="menu-subtitle">只为你营业</div>
+      <div class="random-btn" id="random-btn" onclick="randomPick()">
+        <span class="random-btn-icon">🎲</span>
+        今天吃什么？
+      </div>
     </div>
 
     <div class="menu-section-label" data-delay="200">🥤 饮品</div>
@@ -970,6 +1098,19 @@ html, body {
     <div class="detail-tags" id="detail-tags"></div>
     <div class="detail-taste" id="detail-taste"></div>
     <button class="detail-order-btn" id="detail-order-btn" onclick="addToCart()">想吃这个！</button>
+  </div>
+</div>
+
+<!-- 随机推荐弹窗 -->
+<div class="random-result" id="random-result" onclick="closeRandom(event)">
+  <div class="random-card">
+    <div class="random-card-emoji" id="random-emoji"></div>
+    <div class="random-card-name" id="random-name"></div>
+    <div class="random-card-desc" id="random-desc"></div>
+    <div class="random-card-actions">
+      <button class="random-card-btn secondary" onclick="randomPick()">再来一个</button>
+      <button class="random-card-btn primary" onclick="closeRandomAndAdd()">就它了！</button>
+    </div>
   </div>
 </div>
 
@@ -1292,6 +1433,43 @@ function confirmOrder() {
 }
 
 updateCartBadge();
+
+let lastRandomKey = '';
+
+function randomPick() {
+  const keys = Object.keys(dishData);
+  let key;
+  do {
+    key = keys[Math.floor(Math.random() * keys.length)];
+  } while (key === lastRandomKey && keys.length > 1);
+  lastRandomKey = key;
+
+  const dish = dishData[key];
+  document.getElementById('random-emoji').textContent = dish.emoji;
+  document.getElementById('random-name').textContent = dish.name;
+  document.getElementById('random-desc').textContent = dish.taste.slice(0, 30) + '...';
+  document.getElementById('random-result').classList.add('show');
+
+  const btn = document.getElementById('random-btn');
+  btn.classList.add('spinning');
+  setTimeout(() => btn.classList.remove('spinning'), 500);
+}
+
+function closeRandom(e) {
+  if (e.target === document.getElementById('random-result')) {
+    document.getElementById('random-result').classList.remove('show');
+  }
+}
+
+function closeRandomAndAdd() {
+  if (!cart.includes(lastRandomKey)) {
+    cart.push(lastRandomKey);
+    localStorage.setItem('bingbing_cart', JSON.stringify(cart));
+    updateCartBadge();
+    syncAddButtons();
+  }
+  document.getElementById('random-result').classList.remove('show');
+}
 </script>
 </body>
 </html>
