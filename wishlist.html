@@ -6,11 +6,11 @@
 <title>心愿菜单 - 🧊🧊的专属小馆</title>
 <link rel="stylesheet" href="style.css">
 <style>
-body { min-height: 100vh; display: flex; flex-direction: column; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+body { min-height: 100vh; display: flex; flex-direction: column; background: linear-gradient(180deg, #e8eaf6 0%, #f3e5f5 50%, #fce4ec 100%); }
 
 .page-header { background: transparent; }
-.back-btn { color: rgba(255,255,255,0.7); }
-.page-header-title { color: white; }
+.back-btn { color: #666; }
+.page-header-title { color: #333; }
 
 /* 许愿池 */
 .pool-area {
@@ -27,7 +27,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 
 .star-icon {
   font-size: 32px; animation: twinkle 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
+  filter: drop-shadow(0 0 6px rgba(255, 183, 77, 0.5));
 }
 
 .star-wish:nth-child(2n) .star-icon { animation-delay: 0.5s; }
@@ -44,16 +44,16 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 }
 
 .star-label {
-  font-size: 11px; color: rgba(255,255,255,0.7); text-align: center;
+  font-size: 11px; color: #666; text-align: center;
   max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-.star-wish.done .star-label { color: var(--green); }
+.star-wish.done .star-label { color: var(--green-dark); }
 
 /* 空状态 */
 .pool-empty {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  text-align: center; color: rgba(255,255,255,0.5);
+  text-align: center; color: #999;
 }
 .pool-empty-emoji { font-size: 48px; margin-bottom: 12px; }
 .pool-empty-text { font-size: 14px; line-height: 1.8; }
@@ -73,14 +73,13 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 
 /* 底部输入 */
 .input-row {
-  background: rgba(0,0,0,0.3); border-top: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.6); border-top: 1px solid rgba(0,0,0,0.05);
 }
 .input-field {
-  background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2);
-  color: white;
+  background: white; border-color: #e0e0e0; color: #333;
 }
-.input-field::placeholder { color: rgba(255,255,255,0.4); }
-.input-field:focus { border-color: rgba(255, 215, 0, 0.6); }
+.input-field::placeholder { color: #aaa; }
+.input-field:focus { border-color: #ffb74d; }
 
 /* 点击详情弹窗 */
 .wish-detail {
@@ -91,25 +90,25 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 }
 .wish-detail.show { opacity: 1; pointer-events: auto; }
 .wish-detail-card {
-  background: #1a1a2e; border: 1px solid rgba(255,215,0,0.3);
+  background: white; border: 1px solid rgba(255,183,77,0.3);
   border-radius: 20px; padding: 28px 24px; text-align: center;
   width: 80%; max-width: 280px; transform: scale(0.9);
   transition: transform 0.3s;
 }
 .wish-detail.show .wish-detail-card { transform: scale(1); }
 .wish-detail-emoji { font-size: 40px; margin-bottom: 10px; }
-.wish-detail-text { font-size: 16px; color: white; margin-bottom: 8px; }
-.wish-detail-time { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
+.wish-detail-text { font-size: 16px; color: #333; margin-bottom: 8px; }
+.wish-detail-time { font-size: 12px; color: #aaa; margin-bottom: 12px; }
 .wish-detail-status { font-size: 13px; padding: 4px 12px; border-radius: 10px; display: inline-block; }
 .wish-detail-status.pending { background: rgba(255,152,0,0.2); color: #ffb74d; }
 .wish-detail-status.done { background: rgba(102,187,106,0.2); color: #81c784; }
 
-/* 背景星星 */
+/* 背景装饰 */
 .bg-stars {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
 }
 .bg-star {
-  position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%;
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
   opacity: 0.3; animation: twinkle 4s ease-in-out infinite;
 }
 </style>
@@ -202,14 +201,16 @@ document.getElementById('wish-input').addEventListener('keydown', function(e) {
 });
 
 // 背景小星星
+const bgColors = ['#ffb74d', '#f48fb1', '#90caf9', '#a5d6a7', '#ce93d8'];
 const bgStars = document.getElementById('bg-stars');
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 30; i++) {
   const s = document.createElement('div');
   s.className = 'bg-star';
   s.style.left = Math.random() * 100 + '%';
   s.style.top = Math.random() * 100 + '%';
+  s.style.background = bgColors[i % bgColors.length];
   s.style.animationDelay = Math.random() * 4 + 's';
-  s.style.opacity = Math.random() * 0.4 + 0.1;
+  s.style.opacity = Math.random() * 0.3 + 0.1;
   bgStars.appendChild(s);
 }
 
