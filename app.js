@@ -185,17 +185,38 @@ function getVisitorId() {
 
 function trackVisit() {
   if (!FEISHU_WEBHOOK) return;
-  // 同一会话同一页面只推一次，避免刷新刷屏
   const key = 'visited_' + location.pathname;
   if (sessionStorage.getItem(key)) return;
   sessionStorage.setItem(key, '1');
 
   const ua = navigator.userAgent;
   let device = '其他';
-  if (/iPhone|iPad|iPod/i.test(ua)) device = 'iOS';
-  else if (/Android/i.test(ua)) device = 'Android';
-  else if (/Macintosh/i.test(ua)) device = 'Mac';
-  else if (/Windows/i.test(ua)) device = 'Windows';
+  let osVersion = '';
+  let browser = '';
+
+  if (/iPhone|iPad|iPod/i.test(ua)) {
+    device = 'iPhone';
+    const m = ua.match(/OS (\d+[_\.]\d+)/);
+    if (m) osVersion = 'iOS ' + m[1].replace('_', '.');
+  } else if (/Android/i.test(ua)) {
+    device = 'Android';
+    const m = ua.match(/Android ([\d.]+)/);
+    if (m) osVersion = 'Android ' + m[1];
+  } else if (/Macintosh/i.test(ua)) {
+    device = 'Mac';
+    const m = ua.match(/Mac OS X ([\d_]+)/);
+    if (m) osVersion = 'macOS ' + m[1].replace(/_/g, '.');
+  } else if (/Windows/i.test(ua)) {
+    device = 'Windows';
+  }
+
+  if (/MicroMessenger/i.test(ua)) browser = '微信';
+  else if (/QQ\//i.test(ua)) browser = 'QQ';
+  else if (/CriOS/i.test(ua)) browser = 'Chrome';
+  else if (/FxiOS/i.test(ua)) browser = 'Firefox';
+  else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+  else if (/Chrome/i.test(ua)) browser = 'Chrome';
+  else browser = '浏览器';
 
   const isReturning = Store.get('visitedBefore', false);
   Store.set('visitedBefore', true);
@@ -204,10 +225,12 @@ function trackVisit() {
   const time = (now.getMonth() + 1) + '/' + now.getDate() + ' ' +
     now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
+  const deviceInfo = device + (osVersion ? ' · ' + osVersion : '') + ' · ' + browser;
+
   sendNotification(
     '👀 有人来访\n访客：' + getVisitorId() + (isReturning ? '（老访客）' : '（新访客）') +
+    '\n设备：' + deviceInfo +
     '\n页面：' + (document.title || location.pathname) +
-    '\n设备：' + device +
     '\n时间：' + time
   );
 }
