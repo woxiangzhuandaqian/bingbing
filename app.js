@@ -171,7 +171,7 @@ function sendNotification(text) {
   const now = new Date();
   const time = (now.getMonth() + 1) + '/' + now.getDate() + ' ' +
     now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
-  const msg = text + '\n⏰ ' + time;
+  const msg = text + '\n🕐 触发时间：' + time;
   console.log('[通知] 发送:', msg);
   const data = JSON.stringify({ msg_type: 'text', content: { text: msg } });
   const blob = new Blob([data], { type: 'text/plain' });

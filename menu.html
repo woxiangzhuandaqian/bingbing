@@ -322,7 +322,7 @@ body { overflow-y: auto; }
   </div>
 </div>
 
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 <script>
 document.getElementById('greeting').textContent = getGreeting();
 
@@ -342,7 +342,6 @@ function showDetail(key) {
   const dish = dishData[key];
   if (!dish) return;
   currentDishKey = key;
-  sendNotification('👆 查看菜品详情：' + dish.emoji + dish.name);
   document.getElementById('detail-emoji').textContent = dish.emoji;
   document.getElementById('detail-name').textContent = dish.name;
   document.getElementById('detail-subtitle').textContent = dish.subtitle;
@@ -393,7 +392,6 @@ function addFromMenu(key, btnEl) {
     btnEl.classList.remove('added');
     updateCartBadge();
     showAddToast('放回去咯~ 还剩 ' + cart.length + ' 道');
-    sendNotification('➖ 取消选择：' + dish.emoji + dish.name);
   } else {
     cart.push(key);
     Store.set('cart', cart);
@@ -401,7 +399,6 @@ function addFromMenu(key, btnEl) {
     btnEl.classList.add('added');
     updateCartBadge();
     showAddToast('拿走啦~ 已选 ' + cart.length + ' 道，戳 ♡ 下单吧');
-    sendNotification('➕ 添加选择：' + dish.emoji + dish.name);
     if (cart.length === Object.keys(dishData).length) checkAchievements('select_all');
   }
 }
@@ -510,7 +507,6 @@ function randomPick() {
   document.getElementById('random-desc').textContent = dish.taste.slice(0, 30) + '...';
   document.getElementById('random-overlay').classList.add('show');
   checkAchievements('random');
-  sendNotification('🎲 随机推荐：摇到了' + dish.emoji + dish.name);
 }
 
 function closeRandomAndAdd() {
