@@ -6,6 +6,7 @@ const dishData = {
     subtitle: '茶底饮品 · 冷饮',
     tags: ['清爽', '有嚼劲', '茶香'],
     taste: '淡淡的茶香打底，酸奶顺滑浓郁，糯米粒QQ弹弹的，嚼起来有满足感。清爽不腻，喝完会想再来一杯。',
+    addedAt: '2025-06-23',
   },
   mangguo: {
     emoji: '🥭',
@@ -13,6 +14,7 @@ const dishData = {
     subtitle: '水果饮品 · 冷饮',
     tags: ['甜蜜', '热带风', '层次丰富'],
     taste: '芒果的甜是那种热带阳光的味道，配上酸奶的微酸刚刚好。糯米吸满了果香，每一口都是层次感。甜而不齁，夏天必备。',
+    addedAt: '2025-06-23',
   },
   huanggua: {
     emoji: '🥒',
@@ -20,6 +22,7 @@ const dishData = {
     subtitle: '自创特饮 · 冷饮',
     tags: ['清香', '冰爽', '小甜蜜'],
     taste: '黄瓜的清香，冰沙的口感，小布丁的甜味。三种味道交织在一起，清清爽爽又带点小甜蜜。夏天喝一口整个人都凉下来了。',
+    addedAt: '2025-06-23',
   },
   kele: {
     emoji: '🍗',
@@ -27,6 +30,7 @@ const dishData = {
     subtitle: '肉菜 · 甜口',
     tags: ['甜咸', '嫩滑', '焦糖色'],
     taste: '外皮微焦带着可乐的焦糖色，咬一口甜咸交融，肉嫩得脱骨。最后收汁裹在表面，亮晶晶的超有食欲。连骨头都想嗦一嗦。',
+    addedAt: '2025-06-23',
   },
   tudou: {
     emoji: '🥔',
@@ -34,6 +38,7 @@ const dishData = {
     subtitle: '素菜 · 酸辣口',
     tags: ['脆爽', '开胃', '下饭'],
     taste: '切得细细的，过了冷水所以特别脆。醋的酸、辣椒的辣、花椒的麻，每一口都开胃。米饭杀手级别，不小心会多吃两碗。',
+    addedAt: '2025-06-23',
   },
   fanqie: {
     emoji: '🍅',
@@ -41,6 +46,7 @@ const dishData = {
     subtitle: '家常菜 · 酸甜口',
     tags: ['经典', '嫩滑', '治愈'],
     taste: '西红柿炒出沙沙的口感，酸甜的汤汁包裹着嫩滑的鸡蛋。家常味道，吃一口就觉得安心。拌饭绝了，汤汁一滴都不想剩。',
+    addedAt: '2025-06-23',
   },
   jizhen: {
     emoji: '🫚',
@@ -48,8 +54,18 @@ const dishData = {
     subtitle: '硬菜 · 辣口',
     tags: ['嘎嘣脆', '越嚼越香', '有后劲'],
     taste: '嘎嘣脆的口感，越嚼越香。辣味是那种慢慢上来的后劲，配上青椒的清香，特别适合当下酒菜或者配饭吃。吃完嘴巴辣辣的很过瘾。',
+    addedAt: '2025-06-23',
   }
 };
+
+// 判断是否是新品（3天内）
+function isNewDish(key) {
+  const dish = dishData[key];
+  if (!dish || !dish.addedAt) return false;
+  const added = new Date(dish.addedAt).getTime();
+  const now = Date.now();
+  return (now - added) < 3 * 24 * 60 * 60 * 1000;
+}
 
 // ====== localStorage 工具 ======
 const Store = {

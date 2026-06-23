@@ -52,6 +52,12 @@ body { overflow-y: auto; }
   font-size: 11px; background: linear-gradient(135deg, #fff3e0, #ffe0b2);
   color: var(--orange); padding: 3px 10px; border-radius: 10px; font-weight: 500;
 }
+.menu-item-new {
+  font-size: 10px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  color: var(--green-dark); padding: 2px 8px; border-radius: 8px; font-weight: 600;
+  animation: newPulse 2s ease-in-out infinite;
+}
+@keyframes newPulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
 
 .menu-item-add {
   width: 28px; height: 28px; border-radius: 50%; background: var(--green);
@@ -382,6 +388,12 @@ function syncAddButtons() {
     const key = item.dataset.key;
     const btn = item.querySelector('.menu-item-add');
     if (cart.includes(key)) { btn.textContent = '✓'; btn.classList.add('added'); }
+    if (isNewDish(key)) {
+      const newTag = document.createElement('span');
+      newTag.className = 'menu-item-new';
+      newTag.textContent = 'NEW';
+      item.querySelector('.menu-item-info').appendChild(newTag);
+    }
   });
 }
 
