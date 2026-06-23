@@ -172,3 +172,44 @@ function getGreeting() {
   if (h < 18) return '下午好~来杯饮品？';
   return '晚上好~今晚想吃什么？';
 }
+
+// ====== 访问记录 ======
+function getVisitorId() {
+  let id = Store.get('visitorId', null);
+  if (!id) {
+    id = 'V' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    Store.set('visitorId', id);
+  }
+  return id;
+}
+
+function trackVisit() {
+  if (!FEISHU_WEBHOOK) return;
+  // 同一会话同一页面只推一次，避免刷新刷屏
+  const key = 'visited_' + location.pathname;
+  if (sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, '1');
+
+  const ua = navigator.userAgent;
+  let device = '其他';
+  if (/iPhone|iPad|iPod/i.test(ua)) device = 'iOS';
+  else if (/Android/i.test(ua)) device = 'Android';
+  else if (/Macintosh/i.test(ua)) device = 'Mac';
+  else if (/Windows/i.test(ua)) device = 'Windows';
+
+  const isReturning = Store.get('visitedBefore', false);
+  Store.set('visitedBefore', true);
+
+  const now = new Date();
+  const time = (now.getMonth() + 1) + '/' + now.getDate() + ' ' +
+    now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+  sendNotification(
+    '👀 有人来访\n访客：' + getVisitorId() + (isReturning ? '（老访客）' : '（新访客）') +
+    '\n页面：' + (document.title || location.pathname) +
+    '\n设备：' + device +
+    '\n时间：' + time
+  );
+}
+
+trackVisit();
