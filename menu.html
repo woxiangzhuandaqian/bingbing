@@ -90,58 +90,49 @@ body { overflow-y: auto; }
 .detail-rating { margin-bottom: 20px; }
 .detail-rating-label { font-size: 13px; color: var(--gray); margin-bottom: 6px; text-align: center; }
 
-/* 浮动按钮组 */
-.fab-container {
+/* 右下角浮动区域 */
+.float-area {
   position: fixed; bottom: 30px; right: 24px; z-index: 150;
-  display: flex; flex-direction: column-reverse; align-items: center; gap: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
 }
 
-.fab-main {
+.cart-btn {
   width: 56px; height: 56px; border-radius: 50%; background: var(--green);
   color: white; display: flex; align-items: center; justify-content: center;
   font-size: 24px; box-shadow: 0 4px 15px rgba(102, 187, 106, 0.4);
-  cursor: pointer; transition: transform 0.3s;
+  cursor: pointer; position: relative;
 }
-.fab-main:active { transform: scale(0.9); }
-.fab-main.open { transform: rotate(45deg); background: #555; }
-
-.fab-menu {
-  display: flex; flex-direction: column-reverse; gap: 10px;
-  opacity: 0; transform: translateY(10px); pointer-events: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.fab-menu.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-
-.fab-item {
-  display: flex; align-items: center; gap: 8px; cursor: pointer;
-  flex-direction: row-reverse;
-}
-.fab-item-icon {
-  width: 44px; height: 44px; border-radius: 50%; background: white;
-  display: flex; align-items: center; justify-content: center; font-size: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.2s;
-  position: relative;
-}
-.fab-item-icon:active { transform: scale(0.9); }
-.fab-item-label {
-  background: rgba(0,0,0,0.7); color: white; font-size: 12px;
-  padding: 4px 10px; border-radius: 10px; white-space: nowrap;
-}
-
-/* 购物车独立 - 左下角 */
-.cart-float {
-  position: fixed; bottom: 30px; left: 24px; z-index: 150;
-  width: 56px; height: 56px; border-radius: 50%; background: var(--green);
-  color: white; display: flex; align-items: center; justify-content: center;
-  font-size: 24px; box-shadow: 0 4px 15px rgba(102, 187, 106, 0.4);
-  cursor: pointer;
-}
-.cart-float:active { transform: scale(0.9); }
+.cart-btn:active { transform: scale(0.9); }
 .cart-badge {
   position: absolute; top: -2px; right: -2px; width: 20px; height: 20px;
   border-radius: 50%; background: var(--red); color: white; font-size: 11px;
   display: flex; align-items: center; justify-content: center; font-weight: 600;
 }
+
+.more-toggle {
+  width: 32px; height: 32px; border-radius: 50%; background: white;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; margin-bottom: 10px;
+  transition: transform 0.3s;
+}
+.more-toggle:active { transform: scale(0.9); }
+.more-toggle.open { transform: rotate(180deg); }
+
+.more-menu {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+  opacity: 0; max-height: 0; overflow: hidden; pointer-events: none;
+  transition: all 0.3s ease;
+}
+.more-menu.show { opacity: 1; max-height: 200px; pointer-events: auto; }
+
+.more-item {
+  width: 40px; height: 40px; border-radius: 50%; background: white;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer;
+  transition: transform 0.2s;
+}
+.more-item:active { transform: scale(0.85); }
 
 /* 随机弹窗 */
 .random-card-emoji { font-size: 50px; margin-bottom: 12px; }
@@ -157,7 +148,6 @@ body { overflow-y: auto; }
 <body>
 
 <div class="page-header">
-  <div class="page-header-title" style="margin-right:0">🧊🧊的专属小馆</div>
 </div>
 
 <div class="menu-page">
@@ -266,27 +256,16 @@ body { overflow-y: auto; }
   </div>
 </div>
 
-<!-- 购物车 - 左下角 -->
-<div class="cart-float" onclick="showOrder()">
-  🛒<span class="cart-badge" id="cart-badge" style="display:none">0</span>
-</div>
-
-<!-- 更多功能 - 右下角 -->
-<div class="fab-container">
-  <div class="fab-main" id="fab-main" onclick="toggleFab()">✦</div>
-  <div class="fab-menu" id="fab-menu">
-    <div class="fab-item" onclick="location.href='wishlist.html'">
-      <div class="fab-item-icon">💫</div>
-      <span class="fab-item-label">心愿菜单</span>
-    </div>
-    <div class="fab-item" onclick="location.href='message.html'">
-      <div class="fab-item-icon">💌</div>
-      <span class="fab-item-label">留言板</span>
-    </div>
-    <div class="fab-item" onclick="location.href='achievements.html'">
-      <div class="fab-item-icon">🏆</div>
-      <span class="fab-item-label">成就</span>
-    </div>
+<!-- 右下角浮动区 -->
+<div class="float-area">
+  <div class="more-menu" id="more-menu">
+    <div class="more-item" onclick="location.href='wishlist.html'" title="心愿">💫</div>
+    <div class="more-item" onclick="location.href='message.html'" title="留言">💌</div>
+    <div class="more-item" onclick="location.href='achievements.html'" title="成就">🏆</div>
+  </div>
+  <div class="more-toggle" id="more-toggle" onclick="toggleMore()">⋮</div>
+  <div class="cart-btn" onclick="showOrder()">
+    🛒<span class="cart-badge" id="cart-badge" style="display:none">0</span>
   </div>
 </div>
 
@@ -299,11 +278,9 @@ let lastRandomKey = '';
 syncAddButtons();
 updateCartBadge();
 
-let fabOpen = false;
-function toggleFab() {
-  fabOpen = !fabOpen;
-  document.getElementById('fab-main').classList.toggle('open', fabOpen);
-  document.getElementById('fab-menu').classList.toggle('show', fabOpen);
+function toggleMore() {
+  document.getElementById('more-menu').classList.toggle('show');
+  document.getElementById('more-toggle').classList.toggle('open');
 }
 
 function showDetail(key) {
@@ -400,7 +377,7 @@ function removeFromCart(key) {
 
 function confirmOrder() {
   const items = cart.map(k => dishData[k].name).join('、');
-  document.getElementById('order-sheet').innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:50px;margin-bottom:12px">🎉</div><div style="font-size:18px;font-weight:500;margin-bottom:6px">已收到你的点单！</div><div style="font-size:14px;color:#999">今天想吃：' + items + '<br><br>安排上了，等着吃就好~</div></div>';
+  document.getElementById('order-sheet').innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:50px;margin-bottom:12px">🎉</div><div style="font-size:18px;font-weight:500;margin-bottom:6px">已收到女王陛下的点单！</div><div style="font-size:14px;color:#999">今天翻牌：' + items + '<br><br>御厨已就位，请稍候~ 👨‍🍳</div></div>';
   sendNotification('🧊🧊点了：' + items);
   checkAchievements('order');
   Store.set('cart', []);
