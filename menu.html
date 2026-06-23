@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>菜单 - 🧊🧊的专属小馆</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { overflow-y: auto; }
+
+.menu-page {
+  padding: 0 16px 30px;
+  padding-bottom: env(safe-area-inset-bottom, 30px);
+}
+
+.menu-header {
+  text-align: center;
+  padding: 10px 0 16px;
+}
+
+.menu-title { font-size: 22px; font-weight: 700; color: var(--green-dark); }
+.menu-subtitle { font-size: 13px; color: var(--gray); margin-top: 4px; }
+
+.random-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 12px; padding: 10px 20px;
+  background: white; border: 1.5px dashed var(--green); border-radius: 20px;
+  font-size: 14px; color: var(--green); font-weight: 500; cursor: pointer;
+  transition: all 0.3s;
+}
+.random-btn:active { transform: scale(0.95); background: var(--green-light); }
+
+.section-label {
+  font-size: 13px; color: var(--green); font-weight: 600;
+  margin: 16px 0 8px 4px; display: flex; align-items: center; gap: 6px;
+}
+
+.menu-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; background: white; border-radius: 14px;
+  margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  cursor: pointer; transition: transform 0.2s;
+}
+.menu-item:active { transform: scale(0.97); }
+
+.menu-item-emoji { font-size: 28px; min-width: 36px; text-align: center; }
+.menu-item-info { flex: 1; }
+.menu-item-name { font-size: 16px; color: var(--text); font-weight: 500; }
+.menu-item-desc { font-size: 12px; color: #aaa; margin-top: 2px; }
+
+.menu-item-tag {
+  font-size: 11px; background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  color: var(--orange); padding: 3px 10px; border-radius: 10px; font-weight: 500;
+}
+
+.menu-item-add {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--green);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; line-height: 1; flex-shrink: 0; cursor: pointer;
+  box-shadow: 0 2px 6px rgba(102, 187, 106, 0.3); padding-bottom: 2px;
+}
+.menu-item-add:active { transform: scale(0.85); }
+.menu-item-add.added { background: #e0e0e0; color: var(--gray); box-shadow: none; font-size: 14px; padding-bottom: 0; }
+
+.menu-footer { text-align: center; font-size: 13px; color: #aaa; margin-top: 20px; padding-bottom: 20px; }
+
+/* 详情页 */
+.detail-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--cream); z-index: 200;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 24px; padding-top: env(safe-area-inset-top, 20px);
+  transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none; overflow-y: auto;
+}
+.detail-overlay.show { transform: translateX(0); pointer-events: auto; }
+
+.detail-body {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; max-width: 350px; width: 100%;
+}
+.detail-photo { width: 180px; height: 180px; border-radius: 20px; background: #f0f0f0;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08); margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center; font-size: 60px; }
+.detail-name { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.detail-subtitle { font-size: 13px; color: var(--gray); margin-bottom: 14px; }
+.detail-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
+.detail-tag { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #f1f8e9; color: #558b2f; }
+.detail-taste { font-size: 15px; color: var(--text-light); line-height: 1.8; text-align: center; padding: 0 10px; margin-bottom: 16px; }
+.detail-rating { margin-bottom: 20px; }
+.detail-rating-label { font-size: 13px; color: var(--gray); margin-bottom: 6px; text-align: center; }
+
+/* 购物车 */
+.cart-float {
+  position: fixed; bottom: 30px; right: 24px;
+  width: 56px; height: 56px; border-radius: 50%; background: var(--green);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; box-shadow: 0 4px 15px rgba(102, 187, 106, 0.4);
+  cursor: pointer; z-index: 150;
+}
+.cart-float:active { transform: scale(0.9); }
+.cart-badge {
+  position: absolute; top: -2px; right: -2px; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--red); color: white; font-size: 11px;
+  display: flex; align-items: center; justify-content: center; font-weight: 600;
+}
+
+/* 随机弹窗 */
+.random-card-emoji { font-size: 50px; margin-bottom: 12px; }
+.random-card-name { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.random-card-desc { font-size: 14px; color: var(--gray); margin-bottom: 20px; }
+.random-card-actions { display: flex; gap: 10px; justify-content: center; }
+.random-card-btn { padding: 10px 20px; border-radius: 18px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; }
+.random-card-btn:active { transform: scale(0.95); }
+.random-card-btn.primary { background: var(--green); color: white; }
+.random-card-btn.secondary { background: var(--gray-light); color: var(--text-light); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="back-btn" onclick="location.href='home.html'">‹ 返回</div>
+  <div class="page-header-title">菜单</div>
+</div>
+
+<div class="menu-page">
+  <div class="menu-header">
+    <div class="menu-title">🧊🧊的专属小馆</div>
+    <div class="menu-subtitle">只为你营业</div>
+    <div class="random-btn" onclick="randomPick()">
+      <span>🎲</span> 今天吃什么？
+    </div>
+  </div>
+
+  <div class="section-label">🥤 饮品</div>
+
+  <div class="menu-item" data-key="yuanye" onclick="showDetail('yuanye')">
+    <span class="menu-item-emoji">🍵</span>
+    <div class="menu-item-info"><div class="menu-item-name">原叶糯米酸奶</div><div class="menu-item-desc">茶香配糯叽叽</div></div>
+    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('yuanye',this)">+</div>
+  </div>
+
+  <div class="menu-item" data-key="mangguo" onclick="showDetail('mangguo')">
+    <span class="menu-item-emoji">🥭</span>
+    <div class="menu-item-info"><div class="menu-item-name">芒果糯米酸奶</div><div class="menu-item-desc">热带风味拉满</div></div>
+    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('mangguo',this)">+</div>
+  </div>
+
+  <div class="menu-item" data-key="huanggua" onclick="showDetail('huanggua')">
+    <span class="menu-item-emoji">🥒</span>
+    <div class="menu-item-info"><div class="menu-item-name">黄瓜冰浆</div><div class="menu-item-desc">升级版·加了小布丁</div></div>
+    <span class="menu-item-tag">今日特供</span>
+    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('huanggua',this)">+</div>
+  </div>
+
+  <div class="section-label">🍳 菜品</div>
+
+  <div class="menu-item" data-key="kele" onclick="showDetail('kele')">
+    <span class="menu-item-emoji">🍗</span>
+    <div class="menu-item-info"><div class="menu-item-name">可乐鸡翅</div><div class="menu-item-desc">甜口小炸弹</div></div>
+    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('kele',this)">+</div>
+  </div>
+
+  <div class="menu-item" data-key="tudou" onclick="showDetail('tudou')">
+    <span class="menu-item-emoji">🥔</span>
+    <div class="menu-item-info"><div class="menu-item-name">酸辣土豆丝</div><div class="menu-item-desc">脆脆的下饭神器</div></div>
+    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('tudou',this)">+</div>
+  </div>
+
+  <div class="menu-item" data-key="fanqie" onclick="showDetail('fanqie')">
+    <span class="menu-item-emoji">🍅</span>
+    <div class="menu-item-info"><div class="menu-item-name">西红柿炒鸡蛋</div><div class="menu-item-desc">经典永不过时</div></div>
+    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('fanqie',this)">+</div>
+  </div>
+
+  <div class="menu-item" data-key="jizhen" onclick="showDetail('jizhen')">
+    <span class="menu-item-emoji">🫚</span>
+    <div class="menu-item-info"><div class="menu-item-name">辣炒鸡胗</div><div class="menu-item-desc">嘎嘣脆有嚼劲</div></div>
+    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('jizhen',this)">+</div>
+  </div>
+
+  <div class="menu-footer">菜单持续更新中，敬请期待~</div>
+</div>
+
+<!-- 详情页 -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="page-header" style="width:100%;max-width:350px">
+    <div class="back-btn" onclick="hideDetail()">‹ 返回</div>
+  </div>
+  <div class="detail-body">
+    <div class="detail-photo" id="detail-emoji"></div>
+    <div class="detail-name" id="detail-name"></div>
+    <div class="detail-subtitle" id="detail-subtitle"></div>
+    <div class="detail-tags" id="detail-tags"></div>
+    <div class="detail-taste" id="detail-taste"></div>
+    <div class="detail-rating">
+      <div class="detail-rating-label">你觉得好吃吗？</div>
+      <div class="stars" id="detail-stars">
+        <span class="star" onclick="rate(1)">★</span>
+        <span class="star" onclick="rate(2)">★</span>
+        <span class="star" onclick="rate(3)">★</span>
+        <span class="star" onclick="rate(4)">★</span>
+        <span class="star" onclick="rate(5)">★</span>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-small" id="detail-order-btn" onclick="addToCartFromDetail()">想吃这个！</button>
+  </div>
+</div>
+
+<!-- 随机推荐弹窗 -->
+<div class="overlay" id="random-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="overlay-card">
+    <div class="random-card-emoji" id="random-emoji"></div>
+    <div class="random-card-name" id="random-name"></div>
+    <div class="random-card-desc" id="random-desc"></div>
+    <div class="random-card-actions">
+      <button class="random-card-btn secondary" onclick="randomPick()">再来一个</button>
+      <button class="random-card-btn primary" onclick="closeRandomAndAdd()">就它了！</button>
+    </div>
+  </div>
+</div>
+
+<!-- 下单确认弹窗 -->
+<div class="overlay" id="order-overlay" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="overlay-card" id="order-sheet">
+    <div style="font-size:18px;font-weight:600;margin-bottom:16px">今天想吃的</div>
+    <div id="order-list"></div>
+    <button class="btn btn-primary btn-small" id="order-confirm-btn" onclick="confirmOrder()" style="width:100%;margin-top:12px">就这些啦，下单！</button>
+  </div>
+</div>
+
+<!-- 购物车 -->
+<div class="cart-float" id="cart-float" onclick="showOrder()">
+  🛒<span class="cart-badge" id="cart-badge">0</span>
+</div>
+
+<script src="app.js"></script>
+<script>
+let cart = Store.get('cart', []);
+let currentDishKey = '';
+let lastRandomKey = '';
+
+syncAddButtons();
+updateCartBadge();
+
+function showDetail(key) {
+  const dish = dishData[key];
+  if (!dish) return;
+  currentDishKey = key;
+  document.getElementById('detail-emoji').textContent = dish.emoji;
+  document.getElementById('detail-name').textContent = dish.name;
+  document.getElementById('detail-subtitle').textContent = dish.subtitle;
+  document.getElementById('detail-tags').innerHTML = dish.tags.map(t => '<span class="detail-tag">' + t + '</span>').join('');
+  document.getElementById('detail-taste').textContent = dish.taste;
+
+  const btn = document.getElementById('detail-order-btn');
+  btn.textContent = cart.includes(key) ? '已加入点单 ✓' : '想吃这个！';
+
+  const ratings = Store.get('ratings', {});
+  const r = ratings[key] || 0;
+  document.querySelectorAll('#detail-stars .star').forEach((s, i) => {
+    s.classList.toggle('active', i < r);
+  });
+
+  document.getElementById('detail-overlay').classList.add('show');
+}
+
+function hideDetail() {
+  document.getElementById('detail-overlay').classList.remove('show');
+}
+
+function rate(n) {
+  const ratings = Store.get('ratings', {});
+  ratings[currentDishKey] = n;
+  Store.set('ratings', ratings);
+  document.querySelectorAll('#detail-stars .star').forEach((s, i) => {
+    s.classList.toggle('active', i < n);
+  });
+}
+
+function addToCartFromDetail() {
+  if (cart.includes(currentDishKey)) return;
+  cart.push(currentDishKey);
+  Store.set('cart', cart);
+  document.getElementById('detail-order-btn').textContent = '已加入点单 ✓';
+  updateCartBadge();
+  syncAddButtons();
+}
+
+function addFromMenu(key, btnEl) {
+  if (cart.includes(key)) return;
+  cart.push(key);
+  Store.set('cart', cart);
+  btnEl.textContent = '✓';
+  btnEl.classList.add('added');
+  updateCartBadge();
+  if (cart.length === Object.keys(dishData).length) checkAchievements('select_all');
+}
+
+function syncAddButtons() {
+  document.querySelectorAll('.menu-item[data-key]').forEach(item => {
+    const key = item.dataset.key;
+    const btn = item.querySelector('.menu-item-add');
+    if (cart.includes(key)) { btn.textContent = '✓'; btn.classList.add('added'); }
+  });
+}
+
+function updateCartBadge() {
+  document.getElementById('cart-badge').textContent = cart.length;
+  document.getElementById('cart-badge').style.display = cart.length > 0 ? 'flex' : 'none';
+}
+
+function showOrder() {
+  const list = document.getElementById('order-list');
+  if (cart.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#ccc;padding:20px;font-size:14px">还没选呢~</div>';
+    document.getElementById('order-confirm-btn').style.display = 'none';
+  } else {
+    list.innerHTML = cart.map(key => {
+      const d = dishData[key];
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #f0f0f0"><span>' + d.emoji + ' ' + d.name + '</span><span style="font-size:13px;color:#e57373;cursor:pointer" onclick="removeFromCart(\'' + key + '\')">移除</span></div>';
+    }).join('');
+    document.getElementById('order-confirm-btn').style.display = 'block';
+  }
+  document.getElementById('order-overlay').classList.add('show');
+}
+
+function removeFromCart(key) {
+  cart = cart.filter(k => k !== key);
+  Store.set('cart', cart);
+  updateCartBadge();
+  const item = document.querySelector('.menu-item[data-key="' + key + '"]');
+  if (item) { const btn = item.querySelector('.menu-item-add'); btn.textContent = '+'; btn.classList.remove('added'); }
+  showOrder();
+}
+
+function confirmOrder() {
+  const items = cart.map(k => dishData[k].name).join('、');
+  document.getElementById('order-sheet').innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:50px;margin-bottom:12px">🎉</div><div style="font-size:18px;font-weight:500;margin-bottom:6px">已收到你的点单！</div><div style="font-size:14px;color:#999">今天想吃：' + items + '<br><br>安排上了，等着吃就好~</div></div>';
+  sendNotification('🧊🧊点了：' + items);
+  checkAchievements('order');
+  Store.set('cart', []);
+  cart = [];
+  setTimeout(() => updateCartBadge(), 500);
+}
+
+function randomPick() {
+  const keys = Object.keys(dishData);
+  let key;
+  do { key = keys[Math.floor(Math.random() * keys.length)]; } while (key === lastRandomKey && keys.length > 1);
+  lastRandomKey = key;
+  const dish = dishData[key];
+  document.getElementById('random-emoji').textContent = dish.emoji;
+  document.getElementById('random-name').textContent = dish.name;
+  document.getElementById('random-desc').textContent = dish.taste.slice(0, 30) + '...';
+  document.getElementById('random-overlay').classList.add('show');
+  checkAchievements('random');
+}
+
+function closeRandomAndAdd() {
+  if (!cart.includes(lastRandomKey)) { cart.push(lastRandomKey); Store.set('cart', cart); updateCartBadge(); syncAddButtons(); }
+  document.getElementById('random-overlay').classList.remove('show');
+}
+</script>
+</body>
+</html>

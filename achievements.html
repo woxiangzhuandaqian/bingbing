@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>我的成就 - 🧊🧊的专属小馆</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.achievements-body { padding: 0 20px 40px; }
+
+.achievement-summary {
+  text-align: center; padding: 20px 0 30px;
+}
+.achievement-count { font-size: 36px; font-weight: 700; color: var(--green-dark); }
+.achievement-label { font-size: 14px; color: var(--gray); margin-top: 4px; }
+
+.achievement-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px; background: white; border-radius: 16px;
+  margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.3s;
+}
+
+.achievement-item.locked { opacity: 0.5; }
+.achievement-item.unlocked { animation: slideUp 0.4s ease; }
+
+.achievement-emoji {
+  font-size: 32px; width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px; background: var(--gray-light); flex-shrink: 0;
+}
+
+.achievement-item.unlocked .achievement-emoji {
+  background: var(--green-light);
+}
+
+.achievement-info { flex: 1; }
+.achievement-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.achievement-desc { font-size: 13px; color: var(--gray); }
+
+.achievement-status {
+  font-size: 12px; padding: 4px 10px; border-radius: 10px; flex-shrink: 0;
+}
+.achievement-status.done { background: var(--green-light); color: var(--green-dark); }
+.achievement-status.todo { background: var(--gray-light); color: var(--gray); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="back-btn" onclick="location.href='home.html'">‹ 返回</div>
+  <div class="page-header-title">我的成就</div>
+</div>
+
+<div class="achievements-body">
+  <div class="achievement-summary">
+    <div class="achievement-count" id="count"></div>
+    <div class="achievement-label">已解锁成就</div>
+  </div>
+  <div id="achievement-list"></div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const unlocked = getUnlockedAchievements();
+document.getElementById('count').textContent = unlocked.length + ' / ' + ACHIEVEMENTS.length;
+
+const listEl = document.getElementById('achievement-list');
+listEl.innerHTML = ACHIEVEMENTS.map(ach => {
+  const isUnlocked = unlocked.includes(ach.id);
+  return '<div class="achievement-item ' + (isUnlocked ? 'unlocked' : 'locked') + '">' +
+    '<div class="achievement-emoji">' + (isUnlocked ? ach.emoji : '🔒') + '</div>' +
+    '<div class="achievement-info"><div class="achievement-name">' + (isUnlocked ? ach.name : '???') + '</div><div class="achievement-desc">' + ach.desc + '</div></div>' +
+    '<span class="achievement-status ' + (isUnlocked ? 'done' : 'todo') + '">' + (isUnlocked ? '已解锁' : '未解锁') + '</span>' +
+  '</div>';
+}).join('');
+</script>
+</body>
+</html>

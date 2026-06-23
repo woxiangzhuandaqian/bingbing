@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>留言板 - 🧊🧊的专属小馆</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+.msg-body { flex: 1; padding: 0 20px 100px; overflow-y: auto; }
+
+.msg-item {
+  background: white; border-radius: 16px; padding: 14px 16px;
+  margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  animation: slideUp 0.3s ease;
+}
+
+.msg-text { font-size: 15px; color: var(--text); line-height: 1.6; margin-bottom: 8px; }
+.msg-time { font-size: 11px; color: #ccc; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="back-btn" onclick="location.href='home.html'">‹ 返回</div>
+  <div class="page-header-title">留言板</div>
+</div>
+
+<div class="msg-body" id="msg-body"></div>
+
+<div class="input-row">
+  <input class="input-field" id="msg-input" placeholder="想说点什么~" maxlength="100">
+  <button class="input-submit" onclick="addMessage()">↑</button>
+</div>
+
+<script src="app.js"></script>
+<script>
+function getMessages() { return Store.get('messages', []); }
+
+function renderMessages() {
+  const list = getMessages();
+  const body = document.getElementById('msg-body');
+  if (list.length === 0) {
+    body.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">💌</div><div class="empty-state-text">还没有留言~<br>写点什么吧</div></div>';
+    return;
+  }
+  body.innerHTML = list.map(item => {
+    return '<div class="msg-item"><div class="msg-text">' + escapeHtml(item.text) + '</div><div class="msg-time">' + formatTime(item.time) + '</div></div>';
+  }).join('');
+}
+
+function addMessage() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const list = getMessages();
+  list.unshift({ text: text, time: Date.now() });
+  Store.set('messages', list);
+  input.value = '';
+  renderMessages();
+  checkAchievements('message');
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+document.getElementById('msg-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addMessage();
+});
+
+renderMessages();
+</script>
+</body>
+</html>

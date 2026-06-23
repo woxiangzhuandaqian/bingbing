@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>🧊🧊的专属小馆</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+}
+
+.home-header {
+  text-align: center;
+  padding: 40px 0 10px;
+}
+
+.home-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+
+.home-greeting {
+  font-size: 14px;
+  color: var(--gray);
+  margin-top: 8px;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 20px 0;
+  flex: 1;
+  align-content: start;
+}
+
+.home-card {
+  background: white;
+  border-radius: 18px;
+  padding: 24px 16px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: block;
+}
+
+.home-card:active {
+  transform: scale(0.96);
+}
+
+.home-card-emoji {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.home-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.home-card-desc {
+  font-size: 12px;
+  color: var(--gray);
+}
+
+.home-card-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.home-footer {
+  text-align: center;
+  padding: 20px 0;
+  font-size: 12px;
+  color: #ccc;
+}
+</style>
+</head>
+<body>
+
+<div class="home-header">
+  <div class="home-title">🧊🧊的专属小馆</div>
+  <div class="home-greeting" id="greeting"></div>
+</div>
+
+<div class="home-grid">
+  <a class="home-card" href="menu.html">
+    <div class="home-card-emoji">🍽️</div>
+    <div class="home-card-name">菜单点单</div>
+    <div class="home-card-desc">看看今天吃什么</div>
+  </a>
+
+  <a class="home-card" href="wishlist.html">
+    <div class="home-card-emoji">💫</div>
+    <div class="home-card-name">心愿菜单</div>
+    <div class="home-card-desc">想吃的都写这里</div>
+  </a>
+
+  <a class="home-card" href="message.html">
+    <div class="home-card-emoji">💌</div>
+    <div class="home-card-name">留言板</div>
+    <div class="home-card-desc">想说的话</div>
+  </a>
+
+  <a class="home-card" href="achievements.html">
+    <div class="home-card-emoji">🏆</div>
+    <div class="home-card-name">我的成就</div>
+    <div class="home-card-desc" id="achievement-desc">看看解锁了多少</div>
+  </a>
+</div>
+
+<div class="home-footer">只为你营业 ❤️</div>
+
+<script src="app.js"></script>
+<script>
+document.getElementById('greeting').textContent = getGreeting();
+const unlocked = getUnlockedAchievements();
+document.getElementById('achievement-desc').textContent = unlocked.length + '/' + ACHIEVEMENTS.length + ' 已解锁';
+</script>
+</body>
+</html>

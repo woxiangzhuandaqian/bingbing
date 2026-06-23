@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>心愿菜单 - 🧊🧊的专属小馆</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { min-height: 100vh; display: flex; flex-direction: column; }
+
+.wishlist-body { flex: 1; padding: 0 20px 100px; overflow-y: auto; }
+
+.wish-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; background: white; border-radius: 14px;
+  margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  animation: slideUp 0.3s ease;
+}
+
+.wish-icon { font-size: 20px; }
+.wish-text { flex: 1; font-size: 15px; color: var(--text); }
+.wish-time { font-size: 11px; color: #ccc; }
+
+.wish-item.done .wish-text { text-decoration: line-through; color: var(--gray); }
+.wish-item.done .wish-icon { opacity: 0.5; }
+
+.wish-status {
+  font-size: 11px; padding: 3px 8px; border-radius: 8px;
+  flex-shrink: 0;
+}
+.wish-status.pending { background: #fff3e0; color: var(--orange); }
+.wish-status.completed { background: var(--green-light); color: var(--green-dark); }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="back-btn" onclick="location.href='home.html'">‹ 返回</div>
+  <div class="page-header-title">心愿菜单</div>
+</div>
+
+<div class="wishlist-body" id="wishlist-body"></div>
+
+<div class="input-row">
+  <input class="input-field" id="wish-input" placeholder="想吃什么？写下来~" maxlength="30">
+  <button class="input-submit" onclick="addWish()">↑</button>
+</div>
+
+<script src="app.js"></script>
+<script>
+function getWishlist() { return Store.get('wishlist', []); }
+
+function renderWishlist() {
+  const list = getWishlist();
+  const body = document.getElementById('wishlist-body');
+  if (list.length === 0) {
+    body.innerHTML = '<div class="empty-state"><div class="empty-state-emoji">💫</div><div class="empty-state-text">还没有心愿~<br>写下你想吃的，我来安排</div></div>';
+    return;
+  }
+  body.innerHTML = list.map((item, i) => {
+    const done = item.done;
+    return '<div class="wish-item ' + (done ? 'done' : '') + '">' +
+      '<span class="wish-icon">' + (done ? '✅' : '⭐') + '</span>' +
+      '<span class="wish-text">' + item.text + '</span>' +
+      '<span class="wish-time">' + formatDate(item.time) + '</span>' +
+      '<span class="wish-status ' + (done ? 'completed' : 'pending') + '">' + (done ? '已上菜单' : '待解锁') + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+function addWish() {
+  const input = document.getElementById('wish-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const list = getWishlist();
+  list.unshift({ text: text, time: Date.now(), done: false });
+  Store.set('wishlist', list);
+  input.value = '';
+  renderWishlist();
+}
+
+function formatDate(ts) {
+  const d = new Date(ts);
+  return (d.getMonth() + 1) + '/' + d.getDate();
+}
+
+document.getElementById('wish-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addWish();
+});
+
+renderWishlist();
+</script>
+</body>
+</html>
