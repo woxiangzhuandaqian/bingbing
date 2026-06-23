@@ -154,6 +154,7 @@ function sendNotification(text) {
   if (!FEISHU_WEBHOOK) return;
   fetch(FEISHU_WEBHOOK, {
     method: 'POST',
+    mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       msg_type: 'text',
