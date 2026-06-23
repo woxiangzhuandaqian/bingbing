@@ -2,8 +2,6 @@
 
 专属于我们的小空间 ✨
 
-**访问地址：** https://woxiangzhuandaqian.github.io/bingbing/
-
 ## 功能
 
 - 🎁 猜谜游戏（首次访问触发）
