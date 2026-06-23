@@ -76,7 +76,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 <div class="board" id="board"></div>
 
 <div class="input-row">
-  <input class="input-field" id="msg-input" placeholder="女王陛下有什么想说的~" maxlength="100">
+  <input class="input-field" id="msg-input" placeholder="想说点什么~" maxlength="100">
   <button class="input-submit" onclick="addMessage()">📌</button>
 </div>
 
@@ -91,7 +91,7 @@ function renderMessages() {
   const list = getMessages();
   const board = document.getElementById('board');
   if (list.length === 0) {
-    board.innerHTML = '<div class="board-empty"><div class="board-empty-emoji">📌</div><div class="board-empty-text">女王陛下还没贴过便利贴~<br>写点什么，御厨会看到的哦</div></div>';
+    board.innerHTML = '<div class="board-empty"><div class="board-empty-emoji">📌</div><div class="board-empty-text">还没有便利贴哦~<br>写点什么，我会看到的</div></div>';
     return;
   }
   board.innerHTML = list.map((item, i) => {

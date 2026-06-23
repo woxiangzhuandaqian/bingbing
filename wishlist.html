@@ -124,7 +124,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 <div class="pool-area" id="pool-area"></div>
 
 <div class="input-row" style="z-index:10">
-  <input class="input-field" id="wish-input" placeholder="女王陛下想吃什么？" maxlength="30">
+  <input class="input-field" id="wish-input" placeholder="想吃什么？投币许愿~" maxlength="30">
   <button class="input-submit" onclick="addWish()" style="background:#ffd700;color:#333">🪙</button>
 </div>
 
@@ -146,7 +146,7 @@ function renderWishlist() {
   const list = getWishlist();
   const area = document.getElementById('pool-area');
   if (list.length === 0) {
-    area.innerHTML = '<div class="pool-empty"><div class="pool-empty-emoji">🌙</div><div class="pool-empty-text">女王陛下还没有许愿哦~<br>投一枚硬币，说出你想吃的</div></div>';
+    area.innerHTML = '<div class="pool-empty"><div class="pool-empty-emoji">🌙</div><div class="pool-empty-text">许愿池还是空的哦~<br>投一枚硬币，说出你想吃的</div></div>';
     return;
   }
   const positions = generatePositions(list.length);
