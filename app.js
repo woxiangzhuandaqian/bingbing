@@ -245,3 +245,24 @@ function trackVisit() {
 }
 
 trackVisit();
+
+// ====== 页面停留时长 ======
+const _pageEnterTime = Date.now();
+
+function trackLeave() {
+  const duration = Math.round((Date.now() - _pageEnterTime) / 1000);
+  if (duration < 3) return;
+  const min = Math.floor(duration / 60);
+  const sec = duration % 60;
+  const durationStr = min > 0 ? min + '分' + sec + '秒' : sec + '秒';
+  sendNotification(
+    '📊 页面停留\n访客：' + getVisitorId() +
+    '\n页面：' + (document.title || location.pathname) +
+    '\n停留：' + durationStr
+  );
+}
+
+document.addEventListener('pagehide', trackLeave);
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') trackLeave();
+});
