@@ -275,7 +275,7 @@ body { overflow-y: auto; }
 <!-- 右下角浮动入口 -->
 <div class="float-area">
   <div class="fab-panel" id="fab-panel">
-    <div class="fab-panel-item" onclick="showOrder()">
+    <div class="fab-panel-item" onclick="togglePanel();showOrder()">
       <div class="fab-panel-item-icon">🛒<span class="fab-panel-item-badge" id="cart-badge" style="display:none">0</span></div>
       <span class="fab-panel-item-label">购物车</span>
     </div>
@@ -402,6 +402,8 @@ function updateCartBadge() {
 }
 
 function showOrder() {
+  const sheet = document.getElementById('order-sheet');
+  sheet.innerHTML = '<div style="font-size:18px;font-weight:600;margin-bottom:16px">今天想吃的</div><div id="order-list"></div><button class="btn btn-primary btn-small" id="order-confirm-btn" onclick="confirmOrder()" style="width:100%;margin-top:12px">就这些啦，下单！</button>';
   const list = document.getElementById('order-list');
   if (cart.length === 0) {
     list.innerHTML = '<div style="text-align:center;color:#ccc;padding:20px;font-size:14px">还没选呢~</div>';
