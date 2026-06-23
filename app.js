@@ -169,15 +169,10 @@ const FEISHU_WEBHOOK = 'https://open.feishu.cn/open-apis/bot/v2/hook/af76aa3f-1c
 function sendNotification(text) {
   if (!FEISHU_WEBHOOK) return;
   console.log('[通知] 发送:', text);
-  fetch(FEISHU_WEBHOOK, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      msg_type: 'text',
-      content: { text: text }
-    })
-  }).then(() => console.log('[通知] 请求已发出')).catch(e => console.log('[通知] 失败:', e));
+  const data = JSON.stringify({ msg_type: 'text', content: { text: text } });
+  const blob = new Blob([data], { type: 'application/json' });
+  const sent = navigator.sendBeacon(FEISHU_WEBHOOK, blob);
+  console.log('[通知] sendBeacon结果:', sent);
 }
 
 // ====== 时间问候 ======
@@ -202,9 +197,11 @@ function getVisitorId() {
 
 function trackVisit() {
   if (!FEISHU_WEBHOOK) return;
-  const key = 'visited_' + location.pathname;
-  if (sessionStorage.getItem(key)) return;
-  sessionStorage.setItem(key, '1');
+  const key = 'lastVisit_' + location.pathname;
+  const lastVisit = parseInt(localStorage.getItem(key) || '0');
+  const now = Date.now();
+  if (now - lastVisit < 5 * 60 * 1000) return;
+  localStorage.setItem(key, now.toString());
 
   const ua = navigator.userAgent;
   let device = '其他';
