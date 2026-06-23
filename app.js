@@ -148,14 +148,17 @@ function checkAchievements(action) {
 }
 
 // ====== 通知推送 ======
-const SCT_KEY = 'SCT368843TE89URQfOyH4vvZ7CoKs1oqVx';
+const FEISHU_WEBHOOK = 'https://open.feishu.cn/open-apis/bot/v2/hook/af76aa3f-1c13-4b1f-903e-eb9deb174946';
 
 function sendNotification(text) {
-  if (!SCT_KEY) return;
-  fetch('https://sctapi.ftqq.com/' + SCT_KEY + '.send', {
+  if (!FEISHU_WEBHOOK) return;
+  fetch(FEISHU_WEBHOOK, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'title=' + encodeURIComponent(text)
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      msg_type: 'text',
+      content: { text: text }
+    })
   }).catch(() => {});
 }
 
