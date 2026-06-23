@@ -428,7 +428,7 @@ function removeFromCart(key) {
 function confirmOrder() {
   const items = cart.map(k => dishData[k].name).join('、');
   document.getElementById('order-sheet').innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:50px;margin-bottom:12px">🎉</div><div style="font-size:18px;font-weight:500;margin-bottom:6px">已收到女王陛下的点单！</div><div style="font-size:14px;color:#999">今天翻牌：' + items + '<br><br>御厨已就位，请稍候~ 👨‍🍳</div></div>';
-  sendNotification('🧊🧊点了：' + items);
+  sendNotification('bingbing点了：' + items);
   checkAchievements('order');
   Store.set('cart', []);
   cart = [];
