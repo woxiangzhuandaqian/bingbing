@@ -101,7 +101,7 @@ html, body { height: 100%; overflow: hidden; }
   </div>
 </div>
 
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 <script>
 const chatMessages = [
   { text: '给你几个线索哦 😏', delay: 600 },
@@ -153,6 +153,7 @@ function handleReply(el, isCorrect) {
   if (!isCorrect) {
     el.classList.add('wrong');
     setTimeout(() => el.classList.remove('wrong'), 400);
+    sendNotification('❌ 猜谜选错了：' + el.textContent.trim());
     const wrongBubble = document.createElement('div');
     wrongBubble.className = 'chat-bubble bubble-right';
     wrongBubble.textContent = el.textContent;
@@ -168,6 +169,7 @@ function handleReply(el, isCorrect) {
     }, 500);
   } else {
     quizAnswered = true;
+    sendNotification('✅ 猜谜答对了！');
     const correctBubble = document.createElement('div');
     correctBubble.className = 'chat-bubble bubble-right';
     correctBubble.textContent = el.textContent;

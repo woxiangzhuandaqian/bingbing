@@ -168,11 +168,14 @@ const FEISHU_WEBHOOK = 'https://open.feishu.cn/open-apis/bot/v2/hook/af76aa3f-1c
 
 function sendNotification(text) {
   if (!FEISHU_WEBHOOK) return;
-  console.log('[通知] 发送:', text);
-  const data = JSON.stringify({ msg_type: 'text', content: { text: text } });
+  const now = new Date();
+  const time = (now.getMonth() + 1) + '/' + now.getDate() + ' ' +
+    now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
+  const msg = text + '\n⏰ ' + time;
+  console.log('[通知] 发送:', msg);
+  const data = JSON.stringify({ msg_type: 'text', content: { text: msg } });
   const blob = new Blob([data], { type: 'text/plain' });
-  const sent = navigator.sendBeacon(FEISHU_WEBHOOK, blob);
-  console.log('[通知] sendBeacon结果:', sent);
+  navigator.sendBeacon(FEISHU_WEBHOOK, blob);
 }
 
 // ====== 时间问候 ======
@@ -239,8 +242,7 @@ function trackVisit() {
   sendNotification(
     '👀 有人来访\n访客：' + getVisitorId() + (isReturning ? '（老访客）' : '（新访客）') +
     '\n设备：' + deviceInfo +
-    '\n页面：' + (document.title || location.pathname) +
-    '\n时间：' + time
+    '\n页面：' + (document.title || location.pathname)
   );
 }
 
