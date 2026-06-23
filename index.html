@@ -35,6 +35,21 @@ html, body {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   z-index: 1;
+  overflow: hidden;
+}
+
+#page-menu {
+  justify-content: flex-start;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#page-menu::-webkit-scrollbar {
+  display: none;
 }
 
 .page.active {
@@ -305,9 +320,9 @@ html, body {
   width: 100%;
   max-width: 350px;
   overflow-y: auto;
-  max-height: 85vh;
+  max-height: 100%;
   -webkit-overflow-scrolling: touch;
-  padding: 0 5px;
+  padding: 0 5px 80px;
 }
 
 .menu-header {
@@ -430,6 +445,36 @@ html, body {
   animation: pulse 2s ease-in-out infinite;
 }
 
+.menu-item-add {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #66bb6a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.3s;
+  box-shadow: 0 2px 6px rgba(102, 187, 106, 0.3);
+  padding-bottom: 2px;
+}
+
+.menu-item-add:active {
+  transform: scale(0.85);
+}
+
+.menu-item-add.added {
+  background: #e0e0e0;
+  color: #999;
+  box-shadow: none;
+  font-size: 14px;
+}
+
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
@@ -454,6 +499,329 @@ html, body {
   background: #e0e0e0;
   border-radius: 1px;
   margin: 0 auto 10px;
+}
+
+/* ====== 菜品详情页 ====== */
+.detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fffef7;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px;
+  padding-top: env(safe-area-inset-top, 20px);
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.detail-overlay.show {
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.detail-header {
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+}
+
+.detail-back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 15px;
+  color: #66bb6a;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  padding: 8px 12px 8px 0;
+  font-weight: 500;
+}
+
+.detail-back:active {
+  opacity: 0.6;
+}
+
+.detail-back-arrow {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.detail-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 350px;
+  width: 100%;
+  margin-top: -20px;
+}
+
+.detail-photo {
+  width: 200px;
+  height: 200px;
+  border-radius: 20px;
+  background: #f0f0f0;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-photo-placeholder {
+  font-size: 60px;
+}
+
+.detail-name {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.detail-subtitle {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.detail-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.detail-tag {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #f1f8e9;
+  color: #558b2f;
+}
+
+.detail-taste {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.8;
+  text-align: center;
+  padding: 0 10px;
+  margin-bottom: 24px;
+}
+
+.detail-order-btn {
+  padding: 12px 36px;
+  background: #66bb6a;
+  color: white;
+  border: none;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.3);
+}
+
+.detail-order-btn:active {
+  transform: scale(0.95);
+}
+
+.detail-order-btn.added {
+  background: #e8f5e9;
+  color: #2e7d32;
+  box-shadow: none;
+}
+
+/* ====== 点单浮动按钮 ====== */
+.cart-float {
+  position: fixed;
+  bottom: 30px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #66bb6a;
+  color: white;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 15px rgba(102, 187, 106, 0.4);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 150;
+  transition: transform 0.3s;
+  animation: cartPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.cart-float.show {
+  display: flex;
+}
+
+.cart-float:active {
+  transform: scale(0.9);
+}
+
+.cart-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f44336;
+  color: white;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+@keyframes cartPop {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* ====== 点单确认页 ====== */
+.order-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.order-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.order-sheet {
+  width: 85%;
+  max-width: 340px;
+  background: white;
+  border-radius: 20px;
+  padding: 24px 24px 28px;
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.order-overlay.show .order-sheet {
+  transform: scale(1);
+}
+
+.order-sheet-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.order-list {
+  margin-bottom: 20px;
+}
+
+.order-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.order-list-item:last-child {
+  border-bottom: none;
+}
+
+.order-list-name {
+  font-size: 15px;
+  color: #333;
+}
+
+.order-list-remove {
+  font-size: 13px;
+  color: #e57373;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.order-confirm-btn {
+  width: 100%;
+  padding: 14px;
+  background: #66bb6a;
+  color: white;
+  border: none;
+  border-radius: 22px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.3s;
+}
+
+.order-confirm-btn:active {
+  transform: scale(0.97);
+}
+
+.order-empty {
+  text-align: center;
+  color: #ccc;
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* 下单成功 */
+.order-success {
+  text-align: center;
+  padding: 30px 0;
+}
+
+.order-success-emoji {
+  font-size: 50px;
+  margin-bottom: 12px;
+}
+
+.order-success-text {
+  font-size: 18px;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.order-success-sub {
+  font-size: 14px;
+  color: #999;
 }
 </style>
 </head>
@@ -506,69 +874,111 @@ html, body {
 
     <div class="menu-section-label" data-delay="200">🥤 饮品</div>
 
-    <div class="menu-item" data-delay="350" onclick="wiggleItem(this)">
+    <div class="menu-item" data-delay="350" data-key="yuanye" onclick="showDetail('yuanye')">
       <span class="menu-item-emoji">🍵</span>
       <div class="menu-item-info">
         <div class="menu-item-name">原叶糯米酸奶</div>
         <div class="menu-item-desc">茶香配糯叽叽</div>
       </div>
+      <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('yuanye',this)">+</div>
     </div>
 
-    <div class="menu-item" data-delay="480" onclick="wiggleItem(this)">
+    <div class="menu-item" data-delay="480" data-key="mangguo" onclick="showDetail('mangguo')">
       <span class="menu-item-emoji">🥭</span>
       <div class="menu-item-info">
         <div class="menu-item-name">芒果糯米酸奶</div>
         <div class="menu-item-desc">热带风味拉满</div>
       </div>
+      <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('mangguo',this)">+</div>
     </div>
 
-    <div class="menu-item" data-delay="610" onclick="wiggleItem(this)">
+    <div class="menu-item" data-delay="610" data-key="huanggua" onclick="showDetail('huanggua')">
       <span class="menu-item-emoji">🥒</span>
       <div class="menu-item-info">
         <div class="menu-item-name">黄瓜冰浆</div>
         <div class="menu-item-desc">升级版·加了小布丁</div>
       </div>
       <span class="menu-item-tag">今日特供</span>
+      <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('huanggua',this)">+</div>
     </div>
 
     <div class="menu-section-label" data-delay="750">🍳 菜品</div>
 
-    <div class="menu-item" data-delay="880" onclick="wiggleItem(this)">
+    <div class="menu-item" data-delay="880" data-key="kele" onclick="showDetail('kele')">
       <span class="menu-item-emoji">🍗</span>
       <div class="menu-item-info">
         <div class="menu-item-name">可乐鸡翅</div>
         <div class="menu-item-desc">甜口小炸弹</div>
       </div>
+      <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('kele',this)">+</div>
     </div>
 
-    <div class="menu-item" data-delay="1010" onclick="wiggleItem(this)">
+    <div class="menu-item" data-delay="1010" data-key="tudou" onclick="showDetail('tudou')">
       <span class="menu-item-emoji">🥔</span>
       <div class="menu-item-info">
         <div class="menu-item-name">酸辣土豆丝</div>
         <div class="menu-item-desc">脆脆的下饭神器</div>
       </div>
+      <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('tudou',this)">+</div>
     </div>
 
-    <div class="menu-item" data-delay="1140" onclick="wiggleItem(this)">
+    <div class="menu-item" data-delay="1140" data-key="fanqie" onclick="showDetail('fanqie')">
       <span class="menu-item-emoji">🍅</span>
       <div class="menu-item-info">
         <div class="menu-item-name">西红柿炒鸡蛋</div>
         <div class="menu-item-desc">经典永不过时</div>
       </div>
+      <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('fanqie',this)">+</div>
     </div>
 
-    <div class="menu-item" data-delay="1270" onclick="wiggleItem(this)">
+    <div class="menu-item" data-delay="1270" data-key="jizhen" onclick="showDetail('jizhen')">
       <span class="menu-item-emoji">🫚</span>
       <div class="menu-item-info">
         <div class="menu-item-name">辣炒鸡胗</div>
         <div class="menu-item-desc">嘎嘣脆有嚼劲</div>
       </div>
+      <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('jizhen',this)">+</div>
     </div>
 
     <div class="menu-footer" id="menu-footer">
       <div class="menu-footer-line"></div>
       菜单持续更新中，敬请期待~
     </div>
+  </div>
+</div>
+
+<!-- 菜品详情页 -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-header">
+    <div class="detail-back" onclick="hideDetail()">
+      <span class="detail-back-arrow">‹</span>
+      <span>返回</span>
+    </div>
+  </div>
+  <div class="detail-body">
+    <div class="detail-photo" id="detail-photo">
+      <span class="detail-photo-placeholder" id="detail-emoji"></span>
+    </div>
+    <div class="detail-name" id="detail-name"></div>
+    <div class="detail-subtitle" id="detail-subtitle"></div>
+    <div class="detail-tags" id="detail-tags"></div>
+    <div class="detail-taste" id="detail-taste"></div>
+    <button class="detail-order-btn" id="detail-order-btn" onclick="addToCart()">想吃这个！</button>
+  </div>
+</div>
+
+<!-- 购物车浮动按钮 -->
+<div class="cart-float" id="cart-float" onclick="showOrder()">
+  🛒
+  <span class="cart-badge" id="cart-badge">0</span>
+</div>
+
+<!-- 下单确认弹窗 -->
+<div class="order-overlay" id="order-overlay" onclick="closeOrder(event)">
+  <div class="order-sheet" id="order-sheet">
+    <div class="order-sheet-title">今天想吃的</div>
+    <div class="order-list" id="order-list"></div>
+    <button class="order-confirm-btn" id="order-confirm-btn" onclick="confirmOrder()">就这些啦，下单！</button>
   </div>
 </div>
 
@@ -703,6 +1113,8 @@ function animateMenu() {
     setTimeout(() => item.classList.add('show'), delay);
   });
   setTimeout(() => document.getElementById('menu-footer').classList.add('show'), 1500);
+  document.getElementById('cart-float').classList.add('show');
+  syncAddButtons();
 }
 
 function wiggleItem(el) {
@@ -710,6 +1122,170 @@ function wiggleItem(el) {
   void el.offsetWidth;
   el.classList.add('wiggle');
 }
+
+const dishData = {
+  yuanye: {
+    emoji: '🍵',
+    name: '原叶糯米酸奶',
+    subtitle: '茶底饮品 · 冷饮',
+    tags: ['清爽', '有嚼劲', '茶香'],
+    taste: '淡淡的茶香打底，酸奶顺滑浓郁，糯米粒QQ弹弹的，嚼起来有满足感。清爽不腻，喝完会想再来一杯。',
+  },
+  mangguo: {
+    emoji: '🥭',
+    name: '芒果糯米酸奶',
+    subtitle: '水果饮品 · 冷饮',
+    tags: ['甜蜜', '热带风', '层次丰富'],
+    taste: '芒果的甜是那种热带阳光的味道，配上酸奶的微酸刚刚好。糯米吸满了果香，每一口都是层次感。甜而不齁，夏天必备。',
+  },
+  huanggua: {
+    emoji: '🥒',
+    name: '黄瓜冰浆',
+    subtitle: '自创特饮 · 冷饮',
+    tags: ['清香', '冰爽', '小甜蜜'],
+    taste: '黄瓜的清香，冰沙的口感，小布丁的甜味。三种味道交织在一起，清清爽爽又带点小甜蜜。夏天喝一口整个人都凉下来了。',
+  },
+  kele: {
+    emoji: '🍗',
+    name: '可乐鸡翅',
+    subtitle: '肉菜 · 甜口',
+    tags: ['甜咸', '嫩滑', '焦糖色'],
+    taste: '外皮微焦带着可乐的焦糖色，咬一口甜咸交融，肉嫩得脱骨。最后收汁裹在表面，亮晶晶的超有食欲。连骨头都想嗦一嗦。',
+  },
+  tudou: {
+    emoji: '🥔',
+    name: '酸辣土豆丝',
+    subtitle: '素菜 · 酸辣口',
+    tags: ['脆爽', '开胃', '下饭'],
+    taste: '切得细细的，过了冷水所以特别脆。醋的酸、辣椒的辣、花椒的麻，每一口都开胃。米饭杀手级别，不小心会多吃两碗。',
+  },
+  fanqie: {
+    emoji: '🍅',
+    name: '西红柿炒鸡蛋',
+    subtitle: '家常菜 · 酸甜口',
+    tags: ['经典', '嫩滑', '治愈'],
+    taste: '西红柿炒出沙沙的口感，酸甜的汤汁包裹着嫩滑的鸡蛋。家常味道，吃一口就觉得安心。拌饭绝了，汤汁一滴都不想剩。',
+  },
+  jizhen: {
+    emoji: '🫚',
+    name: '辣炒鸡胗',
+    subtitle: '硬菜 · 辣口',
+    tags: ['嘎嘣脆', '越嚼越香', '有后劲'],
+    taste: '嘎嘣脆的口感，越嚼越香。辣味是那种慢慢上来的后劲，配上青椒的清香，特别适合当下酒菜或者配饭吃。吃完嘴巴辣辣的很过瘾。',
+  }
+};
+
+let currentDishKey = '';
+let cart = JSON.parse(localStorage.getItem('bingbing_cart') || '[]');
+
+function showDetail(key) {
+  const dish = dishData[key];
+  if (!dish) return;
+  currentDishKey = key;
+  document.getElementById('detail-emoji').textContent = dish.emoji;
+  document.getElementById('detail-name').textContent = dish.name;
+  document.getElementById('detail-subtitle').textContent = dish.subtitle;
+  document.getElementById('detail-tags').innerHTML = dish.tags.map(t => '<span class="detail-tag">' + t + '</span>').join('');
+  document.getElementById('detail-taste').textContent = dish.taste;
+
+  const btn = document.getElementById('detail-order-btn');
+  if (cart.includes(key)) {
+    btn.textContent = '已加入点单 ✓';
+    btn.classList.add('added');
+  } else {
+    btn.textContent = '想吃这个！';
+    btn.classList.remove('added');
+  }
+
+  document.getElementById('detail-overlay').classList.add('show');
+}
+
+function hideDetail() {
+  document.getElementById('detail-overlay').classList.remove('show');
+}
+
+function addToCart() {
+  if (cart.includes(currentDishKey)) return;
+  cart.push(currentDishKey);
+  localStorage.setItem('bingbing_cart', JSON.stringify(cart));
+
+  const btn = document.getElementById('detail-order-btn');
+  btn.textContent = '已加入点单 ✓';
+  btn.classList.add('added');
+
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const badge = document.getElementById('cart-badge');
+  const float = document.getElementById('cart-float');
+  badge.textContent = cart.length;
+  badge.style.display = cart.length > 0 ? 'flex' : 'none';
+}
+
+function addFromMenu(key, btnEl) {
+  if (cart.includes(key)) return;
+  cart.push(key);
+  localStorage.setItem('bingbing_cart', JSON.stringify(cart));
+  btnEl.textContent = '✓';
+  btnEl.classList.add('added');
+  updateCartBadge();
+}
+
+function syncAddButtons() {
+  document.querySelectorAll('.menu-item[data-key]').forEach(item => {
+    const key = item.dataset.key;
+    const btn = item.querySelector('.menu-item-add');
+    if (cart.includes(key)) {
+      btn.textContent = '✓';
+      btn.classList.add('added');
+    }
+  });
+}
+
+function showOrder() {
+  const list = document.getElementById('order-list');
+  if (cart.length === 0) {
+    list.innerHTML = '<div class="order-empty">还没选呢，去挑几个想吃的吧~</div>';
+  } else {
+    list.innerHTML = cart.map(key => {
+      const d = dishData[key];
+      return '<div class="order-list-item"><span class="order-list-name">' + d.emoji + ' ' + d.name + '</span><span class="order-list-remove" onclick="removeFromCart(\'' + key + '\')">移除</span></div>';
+    }).join('');
+  }
+  document.getElementById('order-confirm-btn').style.display = cart.length > 0 ? 'block' : 'none';
+  document.getElementById('order-overlay').classList.add('show');
+}
+
+function closeOrder(e) {
+  if (e.target === document.getElementById('order-overlay')) {
+    document.getElementById('order-overlay').classList.remove('show');
+  }
+}
+
+function removeFromCart(key) {
+  cart = cart.filter(k => k !== key);
+  localStorage.setItem('bingbing_cart', JSON.stringify(cart));
+  updateCartBadge();
+  const item = document.querySelector('.menu-item[data-key="' + key + '"]');
+  if (item) {
+    const btn = item.querySelector('.menu-item-add');
+    btn.textContent = '+';
+    btn.classList.remove('added');
+  }
+  showOrder();
+}
+
+function confirmOrder() {
+  const sheet = document.getElementById('order-sheet');
+  const items = cart.map(k => dishData[k].name).join('、');
+  sheet.innerHTML = '<div class="order-success"><div class="order-success-emoji">🎉</div><div class="order-success-text">已收到你的点单！</div><div class="order-success-sub">今天想吃：' + items + '<br><br>安排上了，等着吃就好~</div></div>';
+  localStorage.removeItem('bingbing_cart');
+  cart = [];
+  setTimeout(() => updateCartBadge(), 500);
+}
+
+updateCartBadge();
 </script>
 </body>
 </html>
