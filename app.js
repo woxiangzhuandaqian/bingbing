@@ -147,18 +147,15 @@ function checkAchievements(action) {
   }
 }
 
-// ====== 通知推送（预留） ======
-const WEBHOOK_URL = '';
+// ====== 通知推送 ======
+const SCT_KEY = 'SCT368843TE89URQfOyH4vvZ7CoKs1oqVx';
 
 function sendNotification(text) {
-  if (!WEBHOOK_URL) return;
-  fetch(WEBHOOK_URL, {
+  if (!SCT_KEY) return;
+  fetch('https://sctapi.ftqq.com/' + SCT_KEY + '.send', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      msg_type: 'text',
-      content: { text: text }
-    })
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'title=' + encodeURIComponent(text)
   }).catch(() => {});
 }
 
