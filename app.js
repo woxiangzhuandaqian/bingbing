@@ -232,7 +232,7 @@ function trackVisit() {
 
   const now = new Date();
   const time = (now.getMonth() + 1) + '/' + now.getDate() + ' ' +
-    now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0') + ':' + now.getSeconds().toString().padStart(2, '0');
 
   const deviceInfo = device + (osVersion ? ' · ' + osVersion : '') + ' · ' + browser;
 
