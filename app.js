@@ -168,6 +168,7 @@ const FEISHU_WEBHOOK = 'https://open.feishu.cn/open-apis/bot/v2/hook/af76aa3f-1c
 
 function sendNotification(text) {
   if (!FEISHU_WEBHOOK) return;
+  console.log('[通知] 发送:', text);
   fetch(FEISHU_WEBHOOK, {
     method: 'POST',
     mode: 'no-cors',
@@ -176,7 +177,7 @@ function sendNotification(text) {
       msg_type: 'text',
       content: { text: text }
     })
-  }).catch(() => {});
+  }).then(() => console.log('[通知] 请求已发出')).catch(e => console.log('[通知] 失败:', e));
 }
 
 // ====== 时间问候 ======
