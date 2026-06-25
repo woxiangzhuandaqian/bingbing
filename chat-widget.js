@@ -85,7 +85,7 @@
   bubble.innerHTML = '💬';
   document.body.appendChild(bubble);
 
-  const nicknames = ['张小希', '冰冰的笨宝宝', '宝宝', '老公', '张小笨'];
+  const nicknames = ['张小希', '冰冰的笨宝宝', '宝宝', '老公', '张小笨', '张笨笨'];
   const randomNick = nicknames[Math.floor(Math.random() * nicknames.length)];
 
   // 聊天面板
