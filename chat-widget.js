@@ -211,7 +211,7 @@
 
       loading.remove();
       const botMsg = addMsg('', 'bot');
-      let fullText = '';
+      let replyText = '';
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
@@ -230,8 +230,8 @@
               threadId = json.data.message.threadId || threadId;
               for (const c of (json.data.message.content || [])) {
                 if (c.dataType === 'markdown' && c.data?.text) {
-                  fullText += c.data.text;
-                  botMsg.textContent = fullText;
+                  replyText += c.data.text;
+                  botMsg.textContent = replyText;
                   const msgs = document.getElementById('chat-panel-msgs');
                   msgs.scrollTop = msgs.scrollHeight;
                 }
@@ -240,7 +240,7 @@
           } catch (e) {}
         }
       }
-      if (!fullText) botMsg.textContent = '嗯嗯~';
+      if (!replyText) botMsg.textContent = '嗯嗯~';
     } catch (e) {
       loading.remove();
       addMsg('网络好像不太好，等一下再试试~', 'bot');
