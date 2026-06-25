@@ -19,7 +19,7 @@
   const style = document.createElement('style');
   style.textContent = `
     .chat-bubble {
-      position: fixed; bottom: 80px; right: 20px; width: 50px; height: 50px;
+      position: fixed; top: 80px; right: 20px; width: 50px; height: 50px;
       border-radius: 50%; background: linear-gradient(135deg, #66bb6a, #43a047);
       color: white; display: flex; align-items: center; justify-content: center;
       font-size: 24px; box-shadow: 0 4px 15px rgba(76,175,80,0.4);
@@ -30,7 +30,7 @@
     .chat-bubble.has-panel { box-shadow: 0 4px 15px rgba(76,175,80,0.6); }
 
     .chat-panel {
-      position: fixed; bottom: 140px; right: 16px;
+      position: fixed; top: 140px; right: 16px;
       width: calc(100vw - 32px); max-width: 360px; height: 450px;
       background: white; border-radius: 20px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.15);
@@ -97,7 +97,7 @@
       <div class="chat-msg chat-msg-bot">嘿🧊🧊~ 想我了吗？今天想吃什么，跟我说就行，御厨随时待命 👨‍🍳</div>
     </div>
     <div class="chat-panel-input">
-      <input id="chat-panel-input" placeholder="跟家希说点什么~" maxlength="200">
+      <input id="chat-panel-input" placeholder="跟张笨笨说点什么~" maxlength="200">
       <button id="chat-panel-send">➤</button>
     </div>
   `;
