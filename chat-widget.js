@@ -93,7 +93,7 @@
   panel.className = 'chat-panel';
   panel.innerHTML = `
     <div class="chat-panel-header">
-      <span>💬 家希小助手</span>
+      <span>💬 张笨笨</span>
       <button class="chat-panel-close" onclick="this.closest('.chat-panel').classList.remove('open')">&times;</button>
     </div>
     <div class="chat-panel-messages" id="chat-panel-msgs">
