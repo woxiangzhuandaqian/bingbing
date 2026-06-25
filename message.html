@@ -70,7 +70,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 <body>
 
 <div class="page-header">
-  <div class="back-btn" onclick="location.href='menu.html'">‹ 返回</div>
   <div class="page-header-title">📌 留言板</div>
 </div>
 
@@ -82,20 +81,20 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 </div>
 
 <script src="app.js?v=5"></script>
+<script src="supabase.js"></script>
 <script>
 const COLORS = ['note-yellow', 'note-pink', 'note-blue', 'note-green', 'note-orange', 'note-purple'];
 const ROTATIONS = [-3, -1.5, 0, 1.5, 3, -2, 2];
 
-function getMessages() { return Store.get('messages', []); }
+let messages = [];
 
 function renderMessages() {
-  const list = getMessages();
   const board = document.getElementById('board');
-  if (list.length === 0) {
+  if (messages.length === 0) {
     board.innerHTML = '<div class="board-empty"><div class="board-empty-emoji">📌</div><div class="board-empty-text">还没有便利贴哦~<br>写点什么，我会看到的</div></div>';
     return;
   }
-  board.innerHTML = list.map((item, i) => {
+  board.innerHTML = messages.map((item, i) => {
     const color = COLORS[i % COLORS.length];
     const rotate = ROTATIONS[i % ROTATIONS.length];
     return '<div class="note ' + color + '" style="--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
@@ -106,15 +105,22 @@ function renderMessages() {
   }).join('');
 }
 
-function addMessage() {
+async function loadMessages() {
+  messages = await DB.getAll('messages', 'time.desc');
+  renderMessages();
+}
+
+async function addMessage() {
+  if (User.isViewMode()) return;
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
   if (!text) return;
-  const list = getMessages();
-  list.unshift({ text: text, time: Date.now() });
-  Store.set('messages', list);
   input.value = '';
-  renderMessages();
+  const item = await DB.insert('messages', { text: text, time: Date.now() });
+  if (item) {
+    messages.unshift(item);
+    renderMessages();
+  }
   checkAchievements('message');
   sendNotification('💌🧊🧊留言：' + text);
 }
@@ -132,7 +138,15 @@ document.getElementById('msg-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') addMessage();
 });
 
-renderMessages();
+async function init() {
+  await showIdentityPicker();
+  if (User.isViewMode()) {
+    document.querySelector('.input-row').style.display = 'none';
+  }
+  loadMessages();
+}
+init();
 </script>
+<script src="tab-bar.js"></script>
 </body>
 </html>

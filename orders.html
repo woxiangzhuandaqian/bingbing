@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧊</text></svg>">
+<title>点单记录 - 🧊🧊的专属小馆</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { min-height: 100vh; display: flex; flex-direction: column; }
+.page-header { background: transparent; }
+
+.orders-list { flex: 1; padding: 16px; overflow-y: auto; }
+
+.order-card {
+  background: white; border-radius: 16px; padding: 16px;
+  margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.order-card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+
+.order-card-date {
+  font-size: 14px; font-weight: 600; color: var(--green-dark);
+}
+
+.order-card-time {
+  font-size: 11px; color: #aaa;
+}
+
+.order-card-items {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+
+.order-card-item {
+  font-size: 13px; padding: 4px 10px; border-radius: 10px;
+}
+.order-tag-0 { background: #f1f8e9; color: #558b2f; }
+.order-tag-1 { background: #fff3e0; color: #e65100; }
+.order-tag-2 { background: #e3f2fd; color: #1565c0; }
+.order-tag-3 { background: #fce4ec; color: #c62828; }
+.order-tag-4 { background: #f3e5f5; color: #6a1b9a; }
+.order-tag-5 { background: #e0f7fa; color: #00695c; }
+.order-tag-6 { background: #fff8e1; color: #f57f17; }
+
+.orders-empty {
+  text-align: center; padding: 60px 20px; color: var(--gray);
+}
+.orders-empty-emoji { font-size: 48px; margin-bottom: 12px; }
+.orders-empty-text { font-size: 14px; line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="page-header-title">📋 点单记录</div>
+</div>
+
+<div class="orders-list" id="orders-list"></div>
+
+<script src="app.js?v=5"></script>
+<script src="supabase.js"></script>
+<script>
+async function loadOrders() {
+  const list = await DB.getAll('orders', 'time.desc');
+  const container = document.getElementById('orders-list');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="orders-empty"><div class="orders-empty-emoji">📋</div><div class="orders-empty-text">还没有点单记录~<br>去菜单页点几道菜吧</div></div>';
+    return;
+  }
+  container.innerHTML = list.map(order => {
+    const d = new Date(order.time);
+    const timeStr = (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    const eatDate = order.eat_date;
+    const ed = new Date(eatDate);
+    const eatLabel = (ed.getMonth()+1) + '月' + ed.getDate() + '日';
+    return '<div class="order-card">' +
+      '<div class="order-card-header">' +
+        '<span class="order-card-date">🍽️ ' + eatLabel + ' 吃</span>' +
+        '<span class="order-card-time">下单于 ' + timeStr + '</span>' +
+      '</div>' +
+      '<div class="order-card-items">' +
+        order.items.map((item, i) => '<span class="order-card-item order-tag-' + (i % 7) + '">' + item + '</span>').join('') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+loadOrders();
+</script>
+<script src="tab-bar.js"></script>
+</body>
+</html>

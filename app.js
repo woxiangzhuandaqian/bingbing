@@ -113,6 +113,9 @@ function unlockAchievement(id) {
   unlocked.push(id);
   Store.set('achievements', unlocked);
   showAchievementToast(id);
+  if (typeof DB !== 'undefined' && typeof User !== 'undefined' && User.get()) {
+    DB.insert('achievements', { achievement_id: id, user: User.get(), unlocked_at: Date.now() });
+  }
   return true;
 }
 

@@ -103,6 +103,14 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 .wish-detail-status.pending { background: rgba(255,152,0,0.2); color: #ffb74d; }
 .wish-detail-status.done { background: rgba(102,187,106,0.2); color: #81c784; }
 
+.wish-done-btn {
+  margin-top: 14px; padding: 6px 14px; border: none; border-radius: 10px;
+  background: linear-gradient(135deg, #66bb6a, #43a047); color: white;
+  font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.3s;
+}
+.wish-done-btn:active { transform: scale(0.95); }
+.wish-done-btn.hidden { display: none; }
+
 /* 背景装饰 */
 .bg-stars {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
@@ -118,13 +126,12 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 <div class="bg-stars" id="bg-stars"></div>
 
 <div class="page-header" style="z-index:10;position:relative">
-  <div class="back-btn" onclick="location.href='menu.html'">‹ 返回</div>
   <div class="page-header-title">✨ 许愿池</div>
 </div>
 
 <div class="pool-area" id="pool-area"></div>
 
-<div class="input-row" style="z-index:10">
+<div class="input-row">
   <input class="input-field" id="wish-input" placeholder="想吃什么？投币许愿~" maxlength="30">
   <button class="input-submit" onclick="addWish()" style="background:#ffd700;color:#333">🪙</button>
 </div>
@@ -136,22 +143,23 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
     <div class="wish-detail-text" id="wd-text"></div>
     <div class="wish-detail-time" id="wd-time"></div>
     <div class="wish-detail-status" id="wd-status"></div>
+    <button class="wish-done-btn" id="wd-done-btn" onclick="markWishDone()">✨ 心愿已实现！</button>
   </div>
 </div>
 
 <script src="app.js?v=5"></script>
+<script src="supabase.js"></script>
 <script>
-function getWishlist() { return Store.get('wishlist', []); }
+let wishlist = [];
 
 function renderWishlist() {
-  const list = getWishlist();
   const area = document.getElementById('pool-area');
-  if (list.length === 0) {
+  if (wishlist.length === 0) {
     area.innerHTML = '<div class="pool-empty"><div class="pool-empty-emoji">🌙</div><div class="pool-empty-text">许愿池还是空的哦~<br>投一枚硬币，说出你想吃的</div></div>';
     return;
   }
-  const positions = generatePositions(list.length);
-  area.innerHTML = list.map((item, i) => {
+  const positions = generatePositions(wishlist.length);
+  area.innerHTML = wishlist.map((item, i) => {
     const done = item.done;
     const pos = positions[i];
     return '<div class="star-wish ' + (done ? 'done' : '') + '" style="left:' + pos.x + '%;top:' + pos.y + '%" onclick="showWishDetail(' + i + ')">' +
@@ -180,7 +188,14 @@ function generatePositions(count) {
   return positions;
 }
 
-function addWish() {
+async function loadWishlist() {
+  wishlist = await DB.getAll('wishlist', 'time.desc');
+  renderWishlist();
+  autoMatchWishes();
+}
+
+async function addWish() {
+  if (User.isViewMode()) return;
   const input = document.getElementById('wish-input');
   const text = input.value.trim();
   if (!text) return;
@@ -191,17 +206,20 @@ function addWish() {
   document.body.appendChild(coin);
   setTimeout(() => coin.remove(), 1000);
 
-  const list = getWishlist();
-  list.unshift({ text: text, time: Date.now(), done: false });
-  Store.set('wishlist', list);
   input.value = '';
-  setTimeout(() => renderWishlist(), 600);
+  const item = await DB.insert('wishlist', { text: text, time: Date.now(), done: false });
+  if (item) {
+    wishlist.unshift(item);
+    setTimeout(() => renderWishlist(), 600);
+  }
   sendNotification('💫🧊🧊许了个愿：' + text);
 }
 
+let currentWishIndex = -1;
+
 function showWishDetail(i) {
-  const list = getWishlist();
-  const item = list[i];
+  currentWishIndex = i;
+  const item = wishlist[i];
   if (!item) return;
   document.getElementById('wd-emoji').textContent = item.done ? '🌟' : '⭐';
   document.getElementById('wd-text').textContent = item.text;
@@ -209,12 +227,43 @@ function showWishDetail(i) {
   const status = document.getElementById('wd-status');
   status.textContent = item.done ? '✨ 心愿已实现' : '🔮 等待解锁中...';
   status.className = 'wish-detail-status ' + (item.done ? 'done' : 'pending');
+  const doneBtn = document.getElementById('wd-done-btn');
+  doneBtn.classList.toggle('hidden', item.done);
   document.getElementById('wish-detail').classList.add('show');
+}
+
+async function markWishDone() {
+  const item = wishlist[currentWishIndex];
+  if (!item || item.done) return;
+  await DB.update('wishlist', item.id, { done: true });
+  item.done = true;
+  document.getElementById('wd-emoji').textContent = '🌟';
+  document.getElementById('wd-status').textContent = '✨ 心愿已实现';
+  document.getElementById('wd-status').className = 'wish-detail-status done';
+  document.getElementById('wd-done-btn').classList.add('hidden');
+  renderWishlist();
+  sendNotification('🌟 心愿实现啦：' + item.text);
+  if (typeof checkAchievements !== 'undefined') checkAchievements('wishlist_done');
+}
+
+// 自动匹配：检查菜单里是否有菜名包含心愿关键词
+function autoMatchWishes() {
+  if (typeof dishData === 'undefined') return;
+  const dishNames = Object.values(dishData).map(d => d.name);
+  wishlist.forEach(item => {
+    if (item.done) return;
+    const matched = dishNames.some(name => item.text.includes(name) || name.includes(item.text));
+    if (matched) {
+      DB.update('wishlist', item.id, { done: true });
+      item.done = true;
+    }
+  });
+  renderWishlist();
 }
 
 function formatTime(ts) {
   const d = new Date(ts);
-  return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+  return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0') + ':' + d.getSeconds().toString().padStart(2, '0');
 }
 
 document.getElementById('wish-input').addEventListener('keydown', function(e) {
@@ -235,7 +284,15 @@ for (let i = 0; i < 30; i++) {
   bgStars.appendChild(s);
 }
 
-renderWishlist();
+async function init() {
+  await showIdentityPicker();
+  if (User.isViewMode()) {
+    document.querySelector('.input-row').style.display = 'none';
+  }
+  loadWishlist();
+}
+init();
 </script>
+<script src="tab-bar.js"></script>
 </body>
 </html>

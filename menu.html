@@ -92,58 +92,46 @@ body { overflow-y: auto; }
 .detail-name { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
 .detail-subtitle { font-size: 13px; color: var(--gray); margin-bottom: 14px; }
 .detail-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
-.detail-tag { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #f1f8e9; color: #558b2f; }
+.detail-tag { font-size: 12px; padding: 4px 10px; border-radius: 12px; }
+.detail-tag-0 { background: #f1f8e9; color: #558b2f; }
+.detail-tag-1 { background: #fff3e0; color: #e65100; }
+.detail-tag-2 { background: #e3f2fd; color: #1565c0; }
+.detail-tag-3 { background: #fce4ec; color: #c62828; }
+.detail-tag-4 { background: #f3e5f5; color: #6a1b9a; }
 .detail-taste { font-size: 15px; color: var(--text-light); line-height: 1.8; text-align: center; padding: 0 10px; margin-bottom: 16px; }
 .detail-rating { margin-bottom: 20px; }
 .detail-rating-label { font-size: 13px; color: var(--gray); margin-bottom: 6px; text-align: center; }
 
-/* 右下角浮动区域 */
-.float-area {
-  position: fixed; bottom: 5px; right: 20px; z-index: 150;
-  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
-}
+.detail-review { margin-bottom: 20px; width: 100%; }
+.review-btns { display: flex; gap: 10px; justify-content: center; margin: 8px 0; }
+.review-btn { padding: 8px 20px; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+.review-btn.good { background: #e8f5e9; color: #2e7d32; }
+.review-btn.bad { background: #fce4ec; color: #c62828; }
+.review-btn.good.active { background: #66bb6a; color: white; }
+.review-btn.bad.active { background: #ef5350; color: white; }
+.review-btn:active { transform: scale(0.95); }
+.review-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e0e0e0; border-radius: 12px; font-size: 13px; margin-top: 8px; box-sizing: border-box; }
+.review-input:focus { outline: none; border-color: var(--green); }
+.review-history { margin-top: 12px; max-height: 150px; overflow-y: auto; }
+.review-item { padding: 8px 12px; background: #f9f9f9; border-radius: 10px; margin-bottom: 6px; font-size: 13px; }
+.review-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+.review-item-user { font-weight: 500; color: #666; }
+.review-item-time { font-size: 11px; color: #aaa; }
 
-.fab-toggle {
-  width: 44px; height: 44px; border-radius: 50%; background: var(--green);
+/* 购物车浮动按钮 */
+.cart-fab {
+  position: fixed; bottom: 75px; right: 20px; z-index: 150;
+  width: 48px; height: 48px; border-radius: 50%; background: var(--green);
   color: white; display: flex; align-items: center; justify-content: center;
   font-size: 22px; box-shadow: 0 4px 12px rgba(102, 187, 106, 0.4);
-  cursor: pointer; position: relative; transition: transform 0.3s;
+  cursor: pointer; transition: transform 0.3s;
 }
-.fab-toggle:active { transform: scale(0.9); }
-.fab-toggle.open { background: #555; }
-.fab-badge {
+.cart-fab:active { transform: scale(0.9); }
+.cart-fab-badge {
   position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
   border-radius: 9px; background: var(--red); color: white; font-size: 10px;
   display: flex; align-items: center; justify-content: center; font-weight: 600;
   padding: 0 4px;
-}
-
-.fab-panel {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
-  opacity: 0; max-height: 0; overflow: hidden; pointer-events: none;
-  transition: all 0.3s ease;
-}
-.fab-panel.show { opacity: 1; max-height: 300px; pointer-events: auto; }
-
-.fab-panel-item {
-  display: flex; align-items: center; gap: 8px; cursor: pointer;
-  flex-direction: row-reverse; transition: transform 0.2s;
-}
-.fab-panel-item:active { transform: scale(0.9); }
-.fab-panel-item-icon {
-  width: 40px; height: 40px; border-radius: 50%; background: white;
-  display: flex; align-items: center; justify-content: center; font-size: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: relative;
-}
-.fab-panel-item-label {
-  background: rgba(0,0,0,0.75); color: white; font-size: 12px;
-  padding: 5px 10px; border-radius: 10px; white-space: nowrap;
-}
-.fab-panel-item-badge {
-  position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px;
-  border-radius: 8px; background: var(--red); color: white; font-size: 9px;
-  display: flex; align-items: center; justify-content: center; font-weight: 600;
-  padding: 0 3px;
 }
 
 /* 添加提示toast */
@@ -267,6 +255,15 @@ body { overflow-y: auto; }
         <span class="star" onclick="rate(5)">★</span>
       </div>
     </div>
+    <div class="detail-review">
+      <div class="detail-rating-label">今日评价</div>
+      <div class="review-btns">
+        <button class="review-btn good" id="review-good-btn" onclick="submitReview('good')">👍 好评</button>
+        <button class="review-btn bad" id="review-bad-btn" onclick="submitReview('bad')">👎 吐槽</button>
+      </div>
+      <input class="review-input" id="review-input" placeholder="说两句~（可选）" maxlength="50">
+      <div class="review-history" id="review-history"></div>
+    </div>
     <button class="btn btn-primary btn-small" id="detail-order-btn" onclick="addToCartFromDetail()">想吃这个！</button>
   </div>
 </div>
@@ -296,34 +293,18 @@ body { overflow-y: auto; }
 <!-- 添加提示 -->
 <div class="add-toast" id="add-toast"></div>
 
-<!-- 右下角浮动入口 -->
-<div class="float-area">
-  <div class="fab-panel" id="fab-panel">
-    <div class="fab-panel-item" onclick="showOrder()">
-      <div class="fab-panel-item-icon">🛒<span class="fab-panel-item-badge" id="cart-badge" style="display:none">0</span></div>
-      <span class="fab-panel-item-label">购物车</span>
-    </div>
-    <div class="fab-panel-item" onclick="location.href='wishlist.html'">
-      <div class="fab-panel-item-icon">💫</div>
-      <span class="fab-panel-item-label">心愿菜单</span>
-    </div>
-    <div class="fab-panel-item" onclick="location.href='message.html'">
-      <div class="fab-panel-item-icon">💌</div>
-      <span class="fab-panel-item-label">留言板</span>
-    </div>
-    <div class="fab-panel-item" onclick="location.href='achievements.html'">
-      <div class="fab-panel-item-icon">🏆</div>
-      <span class="fab-panel-item-label">成就</span>
-    </div>
-  </div>
-  <div class="fab-toggle" id="fab-toggle" onclick="togglePanel()">
-    ♡
-    <span class="fab-badge" id="fab-badge" style="display:none">0</span>
-  </div>
+<!-- 购物车浮动按钮 -->
+<div class="cart-fab" onclick="showOrder()">
+  🛒
+  <span class="cart-fab-badge" id="cart-badge" style="display:none">0</span>
 </div>
 
+<script src="tab-bar.js"></script>
+
 <script src="app.js?v=7"></script>
+<script src="supabase.js"></script>
 <script>
+showIdentityPicker();
 document.getElementById('greeting').textContent = getGreeting();
 
 let cart = Store.get('cart', []);
@@ -345,7 +326,7 @@ function showDetail(key) {
   document.getElementById('detail-emoji').textContent = dish.emoji;
   document.getElementById('detail-name').textContent = dish.name;
   document.getElementById('detail-subtitle').textContent = dish.subtitle;
-  document.getElementById('detail-tags').innerHTML = dish.tags.map(t => '<span class="detail-tag">' + t + '</span>').join('');
+  document.getElementById('detail-tags').innerHTML = dish.tags.map((t, i) => '<span class="detail-tag detail-tag-' + (i % 5) + '">' + t + '</span>').join('');
   document.getElementById('detail-taste').textContent = dish.taste;
 
   const btn = document.getElementById('detail-order-btn');
@@ -357,6 +338,7 @@ function showDetail(key) {
     s.classList.toggle('active', i < r);
   });
 
+  loadReviews(key);
   document.getElementById('detail-overlay').classList.add('show');
 }
 
@@ -428,11 +410,8 @@ function showAddToast(text) {
 
 function updateCartBadge() {
   const badge = document.getElementById('cart-badge');
-  const fabBadge = document.getElementById('fab-badge');
   badge.textContent = cart.length;
   badge.style.display = cart.length > 0 ? 'flex' : 'none';
-  fabBadge.textContent = cart.length;
-  fabBadge.style.display = cart.length > 0 ? 'flex' : 'none';
 }
 
 function showOrder() {
@@ -471,15 +450,16 @@ function removeFromCart(key) {
 }
 
 function confirmOrder() {
-  const items = cart.map(k => dishData[k].name).join('、');
+  const items = cart.map(k => dishData[k].name);
   const dateVal = document.getElementById('order-date').value;
   const d = new Date(dateVal);
   const today = new Date().toISOString().split('T')[0];
   let timeLabel;
   if (dateVal === today) { timeLabel = '今天'; }
   else { timeLabel = (d.getMonth() + 1) + '月' + d.getDate() + '日'; }
-  document.getElementById('order-sheet').innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:50px;margin-bottom:12px">🎉</div><div style="font-size:18px;font-weight:500;margin-bottom:6px">已收到女王陛下的点单！</div><div style="font-size:14px;color:#999">' + timeLabel + '想吃：' + items + '<br><br>御厨已就位，请稍候~ 👨‍🍳</div></div>';
-  sendNotification('🧊🧊点了：' + items + '\n📅 ' + timeLabel + '吃');
+  document.getElementById('order-sheet').innerHTML = '<div style="text-align:center;padding:20px 0"><div style="font-size:50px;margin-bottom:12px">🎉</div><div style="font-size:18px;font-weight:500;margin-bottom:6px">已收到女王陛下的点单！</div><div style="font-size:14px;color:#999">' + timeLabel + '想吃：' + items.join('、') + '<br><br>御厨已就位，请稍候~ 👨‍🍳</div></div>';
+  sendNotification('🧊🧊点了：' + items.join('、') + '\n📅 ' + timeLabel + '吃');
+  DB.insert('orders', { items: items, eat_date: dateVal, time: Date.now() });
   checkAchievements('order');
   Store.set('cart', []);
   cart = [];
@@ -512,6 +492,52 @@ function randomPick() {
 function closeRandomAndAdd() {
   if (!cart.includes(lastRandomKey)) { cart.push(lastRandomKey); Store.set('cart', cart); updateCartBadge(); syncAddButtons(); }
   document.getElementById('random-overlay').classList.remove('show');
+}
+
+// ====== 每日评价 ======
+let currentReviewRating = '';
+
+async function loadReviews(dishKey) {
+  currentReviewRating = '';
+  document.getElementById('review-good-btn').classList.remove('active');
+  document.getElementById('review-bad-btn').classList.remove('active');
+  document.getElementById('review-input').value = '';
+  const history = document.getElementById('review-history');
+  history.innerHTML = '';
+  const res = await fetch(SUPABASE_URL + '/rest/v1/reviews?dish_key=eq.' + dishKey + '&order=time.desc&limit=10', { headers: supabaseHeaders });
+  if (!res.ok) return;
+  const reviews = await res.json();
+  if (reviews.length === 0) {
+    history.innerHTML = '<div style="text-align:center;color:#ccc;font-size:12px;padding:8px">还没有评价~</div>';
+    return;
+  }
+  history.innerHTML = reviews.map(r => {
+    const d = new Date(r.time);
+    const timeStr = (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    const emoji = r.rating === 'good' ? '👍' : '👎';
+    const userName = r.user === 'bingbing' ? '冰冰' : '家希';
+    return '<div class="review-item"><div class="review-item-header"><span class="review-item-user">' + emoji + ' ' + userName + '</span><span class="review-item-time">' + timeStr + '</span></div>' +
+      (r.comment ? '<div style="color:#555">' + r.comment.replace(/</g,'&lt;') + '</div>' : '') + '</div>';
+  }).join('');
+}
+
+function submitReview(rating) {
+  currentReviewRating = rating;
+  document.getElementById('review-good-btn').classList.toggle('active', rating === 'good');
+  document.getElementById('review-bad-btn').classList.toggle('active', rating === 'bad');
+  const comment = document.getElementById('review-input').value.trim();
+  DB.insert('reviews', {
+    dish_key: currentDishKey,
+    rating: rating,
+    comment: comment || null,
+    time: Date.now()
+  }).then(() => {
+    loadReviews(currentDishKey);
+    document.getElementById('review-input').value = '';
+  });
+  const dish = dishData[currentDishKey];
+  const emoji = rating === 'good' ? '👍' : '👎';
+  sendNotification(emoji + ' ' + dish.name + ' 评价：' + (comment || (rating === 'good' ? '好评' : '吐槽')));
 }
 </script>
 </body>

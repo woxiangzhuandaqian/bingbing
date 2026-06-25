@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧊</text></svg>">
+<title>我们的树 - 🧊🧊的专属小馆</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+  min-height: 100vh; display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #e8f5e9 0%, #c8e6c9 30%, #a5d6a7 60%, #81c784 100%);
+  overflow: hidden;
+}
+
+.tree-page {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+  padding: 20px; padding-bottom: 80px; position: relative;
+}
+
+.tree-info {
+  position: absolute; top: 20px; left: 0; width: 100%;
+  text-align: center; z-index: 10;
+}
+
+.tree-title {
+  font-size: 18px; font-weight: 700; color: #2e7d32; margin-bottom: 6px;
+}
+
+.tree-stage-name {
+  font-size: 13px; color: #4caf50; margin-bottom: 4px;
+}
+
+.tree-count {
+  font-size: 12px; color: #81c784;
+}
+
+.tree-progress {
+  width: 60%; max-width: 200px; height: 6px; background: rgba(255,255,255,0.5);
+  border-radius: 3px; margin: 10px auto 0; overflow: hidden;
+}
+
+.tree-progress-bar {
+  height: 100%; background: linear-gradient(90deg, #66bb6a, #43a047);
+  border-radius: 3px; transition: width 1s ease;
+}
+
+/* 地面 */
+.ground {
+  position: absolute; bottom: 70px; left: 0; width: 100%; height: 60px;
+  background: linear-gradient(180deg, #5d4037 0%, #4e342e 100%);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+.grass {
+  position: absolute; bottom: 120px; left: 0; width: 100%;
+  height: 30px; display: flex; justify-content: center; gap: 3px;
+  overflow: hidden;
+}
+
+.grass-blade {
+  width: 4px; height: 20px; background: #43a047;
+  border-radius: 2px 2px 0 0; transform-origin: bottom center;
+  animation: sway 3s ease-in-out infinite;
+}
+
+.grass-blade:nth-child(odd) { animation-delay: -1.5s; height: 15px; background: #66bb6a; }
+.grass-blade:nth-child(3n) { height: 24px; }
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+/* 树 */
+.tree-container {
+  position: relative; display: flex; flex-direction: column;
+  align-items: center; z-index: 5; transition: all 1s ease;
+}
+
+/* 树干 */
+.trunk {
+  width: 12px; background: linear-gradient(90deg, #5d4037, #795548, #5d4037);
+  border-radius: 4px; transition: all 1s ease; position: relative;
+}
+
+/* 树冠 */
+.canopy {
+  border-radius: 50%; background: radial-gradient(circle at 40% 40%, #81c784, #4caf50, #388e3c);
+  box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.1);
+  transition: all 1s ease; position: relative;
+}
+
+/* 花朵 */
+.flowers { position: absolute; width: 100%; height: 100%; }
+.flower {
+  position: absolute; font-size: 14px;
+  animation: bloom 2s ease-in-out infinite;
+}
+.flower:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+.flower:nth-child(2) { top: 10%; right: 20%; animation-delay: 0.5s; }
+.flower:nth-child(3) { top: 40%; left: 10%; animation-delay: 1s; }
+.flower:nth-child(4) { top: 30%; right: 10%; animation-delay: 1.5s; }
+.flower:nth-child(5) { top: 55%; left: 25%; animation-delay: 0.3s; }
+.flower:nth-child(6) { top: 50%; right: 25%; animation-delay: 0.8s; }
+
+@keyframes bloom {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* 果实 */
+.fruit {
+  position: absolute; font-size: 16px;
+  animation: dangle 4s ease-in-out infinite;
+}
+.fruit:nth-child(1) { bottom: 20%; left: 15%; animation-delay: 0s; }
+.fruit:nth-child(2) { bottom: 30%; right: 20%; animation-delay: 1s; }
+.fruit:nth-child(3) { bottom: 10%; left: 35%; animation-delay: 2s; }
+
+@keyframes dangle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+/* 种子阶段 */
+.seed { font-size: 40px; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* 发芽阶段 */
+.sprout {
+  display: flex; flex-direction: column; align-items: center;
+}
+.sprout-leaf {
+  width: 20px; height: 12px; background: #66bb6a;
+  border-radius: 50% 50% 50% 0; transform: rotate(-30deg);
+  margin-bottom: -2px; animation: leafWave 3s ease-in-out infinite;
+}
+.sprout-leaf:last-of-type { transform: rotate(30deg) scaleX(-1); }
+.sprout-stem { width: 4px; height: 30px; background: #81c784; border-radius: 2px; }
+
+@keyframes leafWave {
+  0%, 100% { transform: rotate(-30deg); }
+  50% { transform: rotate(-20deg); }
+}
+
+/* 粒子 */
+.particles {
+  position: absolute; width: 100%; height: 100%; pointer-events: none; overflow: hidden;
+}
+.particle {
+  position: absolute; width: 6px; height: 6px; border-radius: 50%;
+  opacity: 0; animation: float-up 4s ease-in-out infinite;
+}
+.particle:nth-child(1) { left: 20%; background: #a5d6a7; animation-delay: 0s; }
+.particle:nth-child(2) { left: 40%; background: #81c784; animation-delay: 1s; }
+.particle:nth-child(3) { left: 60%; background: #c8e6c9; animation-delay: 2s; }
+.particle:nth-child(4) { left: 80%; background: #66bb6a; animation-delay: 3s; }
+.particle:nth-child(5) { left: 30%; background: #fff9c4; animation-delay: 0.5s; }
+.particle:nth-child(6) { left: 70%; background: #f8bbd0; animation-delay: 2.5s; }
+
+@keyframes float-up {
+  0% { bottom: 100px; opacity: 0; transform: translateX(0); }
+  20% { opacity: 0.8; }
+  80% { opacity: 0.4; }
+  100% { bottom: 80%; opacity: 0; transform: translateX(20px); }
+}
+
+/* 升级动画 */
+.level-up {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: white; border-radius: 20px; padding: 24px; text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 999;
+  animation: popIn 0.5s cubic-bezier(0.68, -0.3, 0.265, 1.2);
+  display: none;
+}
+.level-up.show { display: block; }
+@keyframes popIn { from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="particles">
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+</div>
+
+<div class="tree-info">
+  <div class="tree-title">🌱 我们的爱情树</div>
+  <div class="tree-stage-name" id="stage-name">加载中...</div>
+  <div class="tree-count" id="tree-count"></div>
+  <div class="tree-progress"><div class="tree-progress-bar" id="progress-bar"></div></div>
+</div>
+
+<div class="tree-page">
+  <div class="tree-container" id="tree-container"></div>
+</div>
+
+<div class="ground"></div>
+<div class="grass" id="grass"></div>
+
+<script src="app.js?v=5"></script>
+<script src="supabase.js"></script>
+<script>
+const STAGES = [
+  { name: '种子', min: 0, max: 5 },
+  { name: '发芽', min: 6, max: 15 },
+  { name: '幼苗', min: 16, max: 30 },
+  { name: '小树', min: 31, max: 60 },
+  { name: '大树', min: 61, max: 100 },
+  { name: '开花', min: 101, max: 150 },
+  { name: '结果', min: 151, max: 99999 },
+];
+
+function getStage(count) {
+  for (let i = STAGES.length - 1; i >= 0; i--) {
+    if (count >= STAGES[i].min) return { ...STAGES[i], index: i };
+  }
+  return { ...STAGES[0], index: 0 };
+}
+
+function renderTree(count) {
+  const stage = getStage(count);
+  const container = document.getElementById('tree-container');
+  const progress = (count - stage.min) / (stage.max - stage.min + 1);
+
+  document.getElementById('stage-name').textContent = '第' + (stage.index + 1) + '阶段 · ' + stage.name;
+  document.getElementById('tree-count').textContent = '已互动 ' + count + ' 次';
+  document.getElementById('progress-bar').style.width = Math.min(progress * 100, 100) + '%';
+
+  let html = '';
+
+  if (stage.index === 0) {
+    html = '<div class="seed">🌰</div>';
+  } else if (stage.index === 1) {
+    html = '<div class="sprout"><div class="sprout-leaf"></div><div class="sprout-leaf"></div><div class="sprout-stem"></div></div>';
+  } else if (stage.index === 2) {
+    html = '<div class="canopy" style="width:60px;height:60px;margin-bottom:-5px"></div>' +
+           '<div class="trunk" style="height:40px"></div>';
+  } else if (stage.index === 3) {
+    html = '<div class="canopy" style="width:100px;height:90px;margin-bottom:-8px"></div>' +
+           '<div class="trunk" style="height:70px;width:14px"></div>';
+  } else if (stage.index === 4) {
+    html = '<div class="canopy" style="width:150px;height:130px;margin-bottom:-10px"></div>' +
+           '<div class="trunk" style="height:100px;width:18px"></div>';
+  } else if (stage.index === 5) {
+    html = '<div class="canopy" style="width:160px;height:140px;margin-bottom:-10px">' +
+           '<div class="flowers"><span class="flower">🌸</span><span class="flower">🌺</span><span class="flower">🌸</span><span class="flower">🌼</span><span class="flower">🌸</span><span class="flower">🌺</span></div></div>' +
+           '<div class="trunk" style="height:110px;width:20px"></div>';
+  } else {
+    html = '<div class="canopy" style="width:170px;height:150px;margin-bottom:-10px">' +
+           '<div class="flowers"><span class="flower">🌸</span><span class="flower">🌺</span><span class="flower">🌸</span><span class="flower">🌼</span><span class="flower">🌸</span><span class="flower">🌺</span></div>' +
+           '<div class="fruit" style="bottom:25%;left:20%">🍎</div><div class="fruit" style="bottom:35%;right:15%">🍊</div><div class="fruit" style="bottom:15%;left:40%">🍎</div></div>' +
+           '<div class="trunk" style="height:120px;width:22px"></div>';
+  }
+
+  container.innerHTML = html;
+}
+
+// 生成草地
+const grassEl = document.getElementById('grass');
+for (let i = 0; i < 40; i++) {
+  const blade = document.createElement('div');
+  blade.className = 'grass-blade';
+  blade.style.animationDelay = (Math.random() * 3) + 's';
+  grassEl.appendChild(blade);
+}
+
+async function loadTree() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/interactions?select=id', { headers: supabaseHeaders });
+  let count = 0;
+  if (res.ok) {
+    const data = await res.json();
+    count = data.length;
+  }
+  renderTree(count);
+}
+
+loadTree();
+</script>
+<script src="tab-bar.js"></script>
+</body>
+</html>

@@ -49,7 +49,6 @@
 <body>
 
 <div class="page-header">
-  <div class="back-btn" onclick="location.href='menu.html'">‹ 返回</div>
   <div class="page-header-title">我的成就</div>
 </div>
 
@@ -62,19 +61,48 @@
 </div>
 
 <script src="app.js?v=5"></script>
+<script src="supabase.js"></script>
 <script>
-const unlocked = getUnlockedAchievements();
-document.getElementById('count').textContent = unlocked.length + ' / ' + ACHIEVEMENTS.length;
+const ALL_ACHIEVEMENTS = [
+  { id: 'first_order', emoji: '🎯', name: '首次点单', desc: '完成第一次点单' },
+  { id: 'streak_3', emoji: '🔥', name: '连续点单', desc: '连续3天点单' },
+  { id: 'select_all', emoji: '👑', name: '全选达人', desc: '一次全选所有菜品' },
+  { id: 'wishlist_done', emoji: '💫', name: '心愿实现', desc: '第一个心愿菜品上线' },
+  { id: 'msg_10', emoji: '📝', name: '留言达人', desc: '留言超过10条' },
+  { id: 'random_5', emoji: '🎲', name: '随缘吃货', desc: '使用随机推荐5次' },
+  // 第二阶段
+  { id: 'streak_7', emoji: '💪', name: '铁杆吃货', desc: '连续7天点单', phase: 2 },
+  { id: 'order_10', emoji: '🏅', name: '十单元老', desc: '累计点单10次', phase: 2 },
+  { id: 'msg_30', emoji: '💬', name: '话痨本痨', desc: '留言超过30条', phase: 2 },
+  { id: 'wishlist_5', emoji: '🌟', name: '许愿达人', desc: '许了5个愿望', phase: 2 },
+  { id: 'review_10', emoji: '🍽️', name: '美食评论家', desc: '评价10次', phase: 2 },
+  { id: 'all_good', emoji: '⭐', name: '全五星好评', desc: '给所有菜品好评', phase: 2 },
+];
 
-const listEl = document.getElementById('achievement-list');
-listEl.innerHTML = ACHIEVEMENTS.map(ach => {
-  const isUnlocked = unlocked.includes(ach.id);
-  return '<div class="achievement-item ' + (isUnlocked ? 'unlocked' : 'locked') + '">' +
-    '<div class="achievement-emoji">' + (isUnlocked ? ach.emoji : '🔒') + '</div>' +
-    '<div class="achievement-info"><div class="achievement-name">' + ach.name + '</div><div class="achievement-desc">' + ach.desc + '</div></div>' +
-    '<span class="achievement-status ' + (isUnlocked ? 'done' : 'todo') + '">' + (isUnlocked ? '已解锁' : '未解锁') + '</span>' +
-  '</div>';
-}).join('');
+async function loadAchievements() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/achievements?user=eq.' + User.getViewUser() + '&select=achievement_id', { headers: supabaseHeaders });
+  const data = res.ok ? await res.json() : [];
+  const unlocked = data.map(d => d.achievement_id);
+
+  const phase1 = ALL_ACHIEVEMENTS.filter(a => !a.phase);
+  const phase1Done = phase1.every(a => unlocked.includes(a.id));
+  const showList = phase1Done ? ALL_ACHIEVEMENTS : phase1;
+
+  document.getElementById('count').textContent = unlocked.length + ' / ' + showList.length;
+
+  const listEl = document.getElementById('achievement-list');
+  listEl.innerHTML = showList.map(ach => {
+    const isUnlocked = unlocked.includes(ach.id);
+    return '<div class="achievement-item ' + (isUnlocked ? 'unlocked' : 'locked') + '">' +
+      '<div class="achievement-emoji">' + (isUnlocked ? ach.emoji : '🔒') + '</div>' +
+      '<div class="achievement-info"><div class="achievement-name">' + ach.name + '</div><div class="achievement-desc">' + ach.desc + '</div></div>' +
+      '<span class="achievement-status ' + (isUnlocked ? 'done' : 'todo') + '">' + (isUnlocked ? '已解锁' : '未解锁') + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+loadAchievements();
 </script>
+<script src="tab-bar.js"></script>
 </body>
 </html>
