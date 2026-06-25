@@ -150,6 +150,26 @@
     return div;
   }
 
+  async function getContext() {
+    try {
+      const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+      const [ordersRes, wishRes, msgRes] = await Promise.all([
+        fetch(SUPABASE_URL + '/rest/v1/orders?order=time.desc&limit=3', { headers }),
+        fetch(SUPABASE_URL + '/rest/v1/wishlist?done=eq.false&order=time.desc&limit=5', { headers }),
+        fetch(SUPABASE_URL + '/rest/v1/messages?order=time.desc&limit=3', { headers })
+      ]);
+      const orders = ordersRes.ok ? await ordersRes.json() : [];
+      const wishes = wishRes.ok ? await wishRes.json() : [];
+      const msgs = msgRes.ok ? await msgRes.json() : [];
+
+      let ctx = '';
+      if (orders.length) ctx += '最近点单：' + orders.map(o => o.items.join('、')).join('；') + '\n';
+      if (wishes.length) ctx += '当前心愿：' + wishes.map(w => w.text).join('、') + '\n';
+      if (msgs.length) ctx += '最近留言：' + msgs.map(m => m.text).join('；') + '\n';
+      return ctx;
+    } catch (e) { return ''; }
+  }
+
   async function send() {
     if (isSending) return;
     const input = document.getElementById('chat-panel-input');
@@ -165,8 +185,11 @@
     document.getElementById('chat-panel-msgs').appendChild(loading);
 
     try {
+      const ctx = await getContext();
+      const fullText = ctx ? '[参考信息]\n' + ctx + '\n[冰冰宝宝说]\n' + text : text;
+
       const body = {
-        message: { content: { type: 'text', value: { showText: text } } },
+        message: { content: { type: 'text', value: { showText: fullText } } },
         source: APP_ID, from: 'openapi', openId: getOpenId()
       };
       if (threadId) body.threadId = threadId;
