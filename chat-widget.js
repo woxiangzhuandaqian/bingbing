@@ -2,6 +2,8 @@
   const APP_ID = 'a75DgOHChJYhYKphmBmf3lFTNG8biNLb';
   const SECRET_KEY = 'wq1Nh7e0Q45k6YuRBDNki4wDWcrkTITp';
   const AGENT_API = 'https://agentapi.baidu.com/assistant/conversation';
+  const SB_URL = 'https://ovjlremcavbqkcnejvit.supabase.co';
+  const SB_KEY = 'sb_publishable_jckCjiypg2K_1YFRam5bDw_3qv4ESS8';
 
   let threadId = '';
   let isSending = false;
@@ -94,7 +96,7 @@
   panel.innerHTML = `
     <div class="chat-panel-header">
       <span>💬 ${randomNick}</span>
-      <button class="chat-panel-close" onclick="this.closest('.chat-panel').classList.remove('open')">&times;</button>
+      <button class="chat-panel-close" onclick="this.closest('.chat-panel').classList.remove('open');localStorage.setItem('bingbing_chat_open','0')">&times;</button>
     </div>
     <div class="chat-panel-messages" id="chat-panel-msgs">
       <div class="chat-msg chat-msg-bot">嘿🧊🧊~ 想我了吗？今天想吃什么，跟我说就行，御厨随时待命 👨‍🍳</div>
@@ -111,7 +113,14 @@
     if (bubble._dragged) { bubble._dragged = false; return; }
     isOpen = !isOpen;
     panel.classList.toggle('open', isOpen);
+    localStorage.setItem('bingbing_chat_open', isOpen ? '1' : '0');
   });
+
+  // 恢复上次的开关状态
+  if (localStorage.getItem('bingbing_chat_open') === '1') {
+    isOpen = true;
+    panel.classList.add('open');
+  }
 
   // 拖动
   let startX, startY, startLeft, startTop, moved;
@@ -152,11 +161,11 @@
 
   async function getContext() {
     try {
-      const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+      const headers = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
       const [ordersRes, wishRes, msgRes] = await Promise.all([
-        fetch(SUPABASE_URL + '/rest/v1/orders?order=time.desc&limit=3', { headers }),
-        fetch(SUPABASE_URL + '/rest/v1/wishlist?done=eq.false&order=time.desc&limit=5', { headers }),
-        fetch(SUPABASE_URL + '/rest/v1/messages?order=time.desc&limit=3', { headers })
+        fetch(SB_URL + '/rest/v1/orders?order=time.desc&limit=3', { headers }),
+        fetch(SB_URL + '/rest/v1/wishlist?done=eq.false&order=time.desc&limit=5', { headers }),
+        fetch(SB_URL + '/rest/v1/messages?order=time.desc&limit=3', { headers })
       ]);
       const orders = ordersRes.ok ? await ordersRes.json() : [];
       const wishes = wishRes.ok ? await wishRes.json() : [];
