@@ -111,6 +111,14 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 .wish-done-btn:active { transform: scale(0.95); }
 .wish-done-btn.hidden { display: none; }
 
+.wd-replies { margin-top: 12px; max-height: 120px; overflow-y: auto; width: 100%; }
+.wd-reply-item { font-size: 12px; color: #555; line-height: 1.5; margin-bottom: 4px; text-align: left; }
+.wd-reply-name { font-weight: 600; color: #888; }
+.wd-reply-input { display: flex; gap: 6px; margin-top: 10px; width: 100%; }
+.wd-reply-input input { flex: 1; padding: 6px 12px; border: 1px solid #ddd; border-radius: 16px; font-size: 12px; outline: none; }
+.wd-reply-input input:focus { border-color: #66bb6a; }
+.wd-reply-input button { width: 28px; height: 28px; border: none; border-radius: 50%; background: #66bb6a; color: white; font-size: 12px; cursor: pointer; }
+
 /* 背景装饰 */
 .bg-stars {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0;
@@ -143,6 +151,11 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
     <div class="wish-detail-text" id="wd-text"></div>
     <div class="wish-detail-time" id="wd-time"></div>
     <div class="wish-detail-status" id="wd-status"></div>
+    <div class="wd-replies" id="wd-replies"></div>
+    <div class="wd-reply-input">
+      <input id="wd-reply-input" placeholder="回复这个心愿~" maxlength="60" onkeydown="if(event.key==='Enter')submitWishReply()">
+      <button onclick="submitWishReply()">➤</button>
+    </div>
     <button class="wish-done-btn" id="wd-done-btn" onclick="markWishDone()">✨ 心愿已实现！</button>
   </div>
 </div>
@@ -230,7 +243,42 @@ function showWishDetail(i) {
   status.className = 'wish-detail-status ' + (item.done ? 'done' : 'pending');
   const doneBtn = document.getElementById('wd-done-btn');
   doneBtn.classList.toggle('hidden', item.done);
+  document.getElementById('wd-reply-input').value = '';
+  loadWishReplies(item.id);
   document.getElementById('wish-detail').classList.add('show');
+}
+
+const WS_URL = 'https://ovjlremcavbqkcnejvit.supabase.co';
+const WS_KEY = 'sb_publishable_jckCjiypg2K_1YFRam5bDw_3qv4ESS8';
+
+async function loadWishReplies(wishId) {
+  const el = document.getElementById('wd-replies');
+  el.innerHTML = '';
+  const res = await fetch(WS_URL + '/rest/v1/replies?target_table=eq.wishlist&target_id=eq.' + wishId + '&order=time.asc', {
+    headers: { 'apikey': WS_KEY, 'Authorization': 'Bearer ' + WS_KEY }
+  });
+  const replies = res.ok ? await res.json() : [];
+  if (replies.length === 0) { el.innerHTML = '<div style="text-align:center;color:#ccc;font-size:11px">还没有回复~</div>'; return; }
+  el.innerHTML = replies.map(r => {
+    const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
+    return '<div class="wd-reply-item"><span class="wd-reply-name">' + name + '：</span>' + r.text.replace(/</g,'&lt;') + '</div>';
+  }).join('');
+}
+
+async function submitWishReply() {
+  const input = document.getElementById('wd-reply-input');
+  const text = input.value.trim();
+  if (!text || currentWishIndex < 0) return;
+  const user = User.get();
+  if (!user) { await showIdentityPicker(); }
+  const wishId = wishlist[currentWishIndex].id;
+  input.value = '';
+  await fetch(WS_URL + '/rest/v1/replies', {
+    method: 'POST',
+    headers: { 'apikey': WS_KEY, 'Authorization': 'Bearer ' + WS_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify({ target_table: 'wishlist', target_id: wishId, text: text, user: User.get(), time: Date.now() })
+  });
+  loadWishReplies(wishId);
 }
 
 async function markWishDone() {

@@ -186,6 +186,7 @@
     if (!text) return;
     input.value = '';
     addMsg(text, 'user');
+    saveChatMsg('user', text);
     isSending = true;
 
     const loading = document.createElement('div');
@@ -241,12 +242,44 @@
         }
       }
       if (!replyText) botMsg.textContent = '嗯嗯~';
+      saveChatMsg('bot', replyText || '嗯嗯~');
     } catch (e) {
       loading.remove();
       addMsg('网络好像不太好，等一下再试试~', 'bot');
     }
     isSending = false;
   }
+
+  function saveChatMsg(role, content) {
+    const user = getOpenId();
+    fetch(SB_URL + '/rest/v1/chat_history', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: user, role: role, content: content, thread_id: threadId || '', time: Date.now() })
+    });
+  }
+
+  async function loadChatHistory() {
+    const user = getOpenId();
+    const res = await fetch(SB_URL + '/rest/v1/chat_history?user=eq.' + user + '&order=time.asc&limit=50', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!res.ok) return;
+    const history = await res.json();
+    if (history.length === 0) return;
+    const container = document.getElementById('chat-panel-msgs');
+    container.innerHTML = '';
+    history.forEach(h => {
+      const div = document.createElement('div');
+      div.className = 'chat-msg chat-msg-' + h.role;
+      div.textContent = h.content;
+      container.appendChild(div);
+    });
+    if (history.length) threadId = history[history.length - 1].thread_id || '';
+    container.scrollTop = container.scrollHeight;
+  }
+
+  loadChatHistory();
 
   document.getElementById('chat-panel-send').addEventListener('click', send);
   document.getElementById('chat-panel-input').addEventListener('keydown', function(e) {
