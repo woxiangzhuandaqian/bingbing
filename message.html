@@ -48,6 +48,23 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
   font-size: 14px;
 }
 
+/* 回复区 */
+.note-replies { margin-top: 8px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; }
+.reply-item { font-size: 11px; color: #555; line-height: 1.5; margin-bottom: 4px; }
+.reply-item-name { font-weight: 600; color: #888; }
+.note-reply-input {
+  display: flex; gap: 4px; margin-top: 6px;
+}
+.note-reply-input input {
+  flex: 1; padding: 4px 8px; border: 1px solid #ddd; border-radius: 10px;
+  font-size: 11px; outline: none; background: rgba(255,255,255,0.7);
+}
+.note-reply-input button {
+  padding: 4px 8px; border: none; border-radius: 10px;
+  background: rgba(0,0,0,0.1); font-size: 11px; cursor: pointer;
+}
+}
+
 /* 便利贴颜色 */
 .note-yellow { background: #fff9c4; }
 .note-pink { background: #fce4ec; }
@@ -97,17 +114,23 @@ function renderMessages() {
   board.innerHTML = messages.map((item, i) => {
     const color = COLORS[i % COLORS.length];
     const rotate = ROTATIONS[i % ROTATIONS.length];
+    const replies = item._replies || [];
+    const repliesHtml = replies.map(r => {
+      const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
+      return '<div class="reply-item"><span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + '</div>';
+    }).join('');
     return '<div class="note ' + color + '" style="--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
       '<span class="note-pin">📌</span>' +
       '<div class="note-text">' + escapeHtml(item.text) + '</div>' +
       '<div class="note-time">' + formatTime(item.time) + '</div>' +
+      '<div class="note-replies">' + repliesHtml +
+        '<div class="note-reply-input">' +
+          '<input id="reply-input-' + i + '" placeholder="回复~" maxlength="60" onkeydown="if(event.key===\'Enter\')replyTo(' + i + ')">' +
+          '<button onclick="replyTo(' + i + ')">发</button>' +
+        '</div>' +
+      '</div>' +
     '</div>';
   }).join('');
-}
-
-async function loadMessages() {
-  messages = await DB.getAll('messages', 'time.desc');
-  renderMessages();
 }
 
 async function addMessage() {
@@ -138,6 +161,36 @@ function escapeHtml(str) {
 document.getElementById('msg-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') addMessage();
 });
+
+const SB_URL = 'https://ovjlremcavbqkcnejvit.supabase.co';
+const SB_KEY = 'sb_publishable_jckCjiypg2K_1YFRam5bDw_3qv4ESS8';
+
+async function loadMessages() {
+  messages = await DB.getAll('messages', 'time.desc');
+  const res = await fetch(SB_URL + '/rest/v1/replies?target_table=eq.messages&order=time.asc', {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  });
+  const allReplies = res.ok ? await res.json() : [];
+  messages.forEach(m => {
+    m._replies = allReplies.filter(r => r.target_id === m.id);
+  });
+  renderMessages();
+}
+
+async function replyTo(i) {
+  const input = document.getElementById('reply-input-' + i);
+  const text = input.value.trim();
+  if (!text) return;
+  const user = User.get();
+  if (!user) { await showIdentityPicker(); }
+  input.value = '';
+  await fetch(SB_URL + '/rest/v1/replies', {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify({ target_table: 'messages', target_id: messages[i].id, text: text, user: User.get(), time: Date.now() })
+  });
+  loadMessages();
+}
 
 async function init() {
   await showIdentityPicker();
