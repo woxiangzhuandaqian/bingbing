@@ -82,7 +82,7 @@ const ALL_ACHIEVEMENTS = [
 async function loadAchievements() {
   const res = await fetch(SUPABASE_URL + '/rest/v1/achievements?user=eq.' + User.getViewUser() + '&select=achievement_id', { headers: supabaseHeaders });
   const data = res.ok ? await res.json() : [];
-  const unlocked = data.map(d => d.achievement_id);
+  const unlocked = [...new Set(data.map(d => d.achievement_id))];
 
   const phase1 = ALL_ACHIEVEMENTS.filter(a => !a.phase);
   const phase1Done = phase1.every(a => unlocked.includes(a.id));
