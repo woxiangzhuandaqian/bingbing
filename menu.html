@@ -118,13 +118,13 @@ body { overflow-y: auto; }
 .review-item-user { font-weight: 500; color: #666; }
 .review-item-time { font-size: 11px; color: #aaa; }
 
-/* 购物车固定按钮 */
+/* 购物车悬浮按钮 */
 .cart-fab {
-  position: fixed; top: 16px; left: 16px; z-index: 150;
+  position: fixed; top: 80px; left: 20px; z-index: 150;
   width: 44px; height: 44px; border-radius: 12px; background: white;
   color: #333; display: flex; align-items: center; justify-content: center;
   font-size: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  cursor: pointer; transition: transform 0.2s;
+  cursor: pointer; transition: transform 0.2s; touch-action: none; user-select: none;
 }
 .cart-fab:active { transform: scale(0.9); }
 .cart-fab-badge {
@@ -294,10 +294,45 @@ body { overflow-y: auto; }
 <div class="add-toast" id="add-toast"></div>
 
 <!-- 购物车浮动按钮 -->
-<div class="cart-fab" onclick="showOrder()">
+<div class="cart-fab">
   🛒
   <span class="cart-fab-badge" id="cart-badge" style="display:none">0</span>
 </div>
+
+<script>
+(function() {
+  const fab = document.querySelector('.cart-fab');
+  let startX, startY, startLeft, startTop, moved;
+  fab.addEventListener('touchstart', function(e) {
+    const touch = e.touches[0];
+    const rect = fab.getBoundingClientRect();
+    startX = touch.clientX; startY = touch.clientY;
+    startLeft = rect.left; startTop = rect.top;
+    moved = false;
+  });
+  fab.addEventListener('touchmove', function(e) {
+    const touch = e.touches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+    if (moved) {
+      fab.style.left = (startLeft + dx) + 'px';
+      fab.style.top = (startTop + dy) + 'px';
+      fab.style.right = 'auto';
+      fab.style.bottom = 'auto';
+      e.preventDefault();
+    }
+  });
+  fab.addEventListener('touchend', function() {
+    if (moved) fab._dragged = true;
+    else fab._dragged = false;
+  });
+  fab.addEventListener('click', function(e) {
+    if (fab._dragged) { fab._dragged = false; e.stopPropagation(); return; }
+    showOrder();
+  });
+})();
+</script>
 
 <script src="tab-bar.js"></script>
 
