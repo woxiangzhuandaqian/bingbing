@@ -85,6 +85,9 @@
   bubble.innerHTML = '💬';
   document.body.appendChild(bubble);
 
+  const nicknames = ['张小希', '冰冰的笨宝宝', '宝宝', '老公', '张小笨'];
+  const randomNick = nicknames[Math.floor(Math.random() * nicknames.length)];
+
   // 聊天面板
   const panel = document.createElement('div');
   panel.className = 'chat-panel';
@@ -97,7 +100,7 @@
       <div class="chat-msg chat-msg-bot">嘿🧊🧊~ 想我了吗？今天想吃什么，跟我说就行，御厨随时待命 👨‍🍳</div>
     </div>
     <div class="chat-panel-input">
-      <input id="chat-panel-input" placeholder="跟张笨笨说点什么~" maxlength="200">
+      <input id="chat-panel-input" placeholder="跟${randomNick}说点什么~" maxlength="200">
       <button id="chat-panel-send">➤</button>
     </div>
   `;
