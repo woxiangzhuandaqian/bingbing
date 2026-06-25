@@ -76,7 +76,7 @@
     .chat-panel-input input:focus { border-color: #66bb6a; }
     .chat-panel-input button {
       width: 34px; height: 34px; border-radius: 50%; border: none;
-      background: #66bb6a; color: white; font-size: 12px; cursor: pointer;
+      background: #66bb6a; color: white; font-size: 16px; cursor: pointer;
     }
   `;
   document.head.appendChild(style);
