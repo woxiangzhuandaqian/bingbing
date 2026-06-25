@@ -190,6 +190,7 @@ async function replyTo(i) {
     headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
     body: JSON.stringify({ target_table: 'messages', target_id: messages[i].id, text: text, user: User.get(), time: Date.now() })
   });
+  trackInteraction('reply');
   loadMessages();
 }
 

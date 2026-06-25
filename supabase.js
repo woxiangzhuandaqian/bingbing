@@ -117,7 +117,8 @@ const GROWTH_VALUES = {
   wishlist: 2,
   order: 3,
   review: 1,
-  wish_done: 5
+  wish_done: 5,
+  reply: 1
 };
 
 function trackInteraction(action) {

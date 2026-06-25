@@ -278,6 +278,7 @@ async function submitWishReply() {
     headers: { 'apikey': WS_KEY, 'Authorization': 'Bearer ' + WS_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
     body: JSON.stringify({ target_table: 'wishlist', target_id: wishId, text: text, user: User.get(), time: Date.now() })
   });
+  trackInteraction('reply');
   loadWishReplies(wishId);
 }
 
