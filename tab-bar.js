@@ -43,4 +43,9 @@
     '</a>';
   }).join('');
   document.body.appendChild(bar);
+
+  // 加载悬浮小助手
+  const chatScript = document.createElement('script');
+  chatScript.src = 'chat-widget.js';
+  document.body.appendChild(chatScript);
 })();
