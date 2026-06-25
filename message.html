@@ -122,6 +122,7 @@ async function addMessage() {
     renderMessages();
   }
   checkAchievements('message');
+  trackInteraction('message');
   sendNotification('💌🧊🧊留言：' + text);
 }
 

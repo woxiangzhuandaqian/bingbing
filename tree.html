@@ -275,11 +275,11 @@ for (let i = 0; i < 40; i++) {
 }
 
 async function loadTree() {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/interactions?select=id', { headers: supabaseHeaders });
+  const res = await fetch(SUPABASE_URL + '/rest/v1/interactions?select=points', { headers: supabaseHeaders });
   let count = 0;
   if (res.ok) {
     const data = await res.json();
-    count = data.length;
+    count = data.reduce((sum, d) => sum + (d.points || 1), 0);
   }
   renderTree(count);
 }

@@ -110,3 +110,19 @@ const DB = {
     return res.ok;
   }
 };
+
+// 互动成长值
+const GROWTH_VALUES = {
+  message: 1,
+  wishlist: 2,
+  order: 3,
+  review: 1,
+  wish_done: 5
+};
+
+function trackInteraction(action) {
+  const value = GROWTH_VALUES[action] || 1;
+  const user = User.get();
+  if (!user) return;
+  DB.insert('interactions', { user: user, action: action, points: value, time: Date.now() });
+}

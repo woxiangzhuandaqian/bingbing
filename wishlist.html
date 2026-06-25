@@ -213,6 +213,7 @@ async function addWish() {
     setTimeout(() => renderWishlist(), 600);
   }
   sendNotification('💫🧊🧊许了个愿：' + text);
+  trackInteraction('wishlist');
 }
 
 let currentWishIndex = -1;
@@ -243,6 +244,7 @@ async function markWishDone() {
   document.getElementById('wd-done-btn').classList.add('hidden');
   renderWishlist();
   sendNotification('🌟 心愿实现啦：' + item.text);
+  trackInteraction('wish_done');
   if (typeof checkAchievements !== 'undefined') checkAchievements('wishlist_done');
 }
 
