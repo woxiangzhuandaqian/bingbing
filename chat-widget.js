@@ -74,7 +74,7 @@
     .chat-panel-input input:focus { border-color: #66bb6a; }
     .chat-panel-input button {
       width: 34px; height: 34px; border-radius: 50%; border: none;
-      background: #66bb6a; color: white; font-size: 16px; cursor: pointer;
+      background: #66bb6a; color: white; font-size: 12px; cursor: pointer;
     }
   `;
   document.head.appendChild(style);
@@ -98,7 +98,7 @@
     </div>
     <div class="chat-panel-input">
       <input id="chat-panel-input" placeholder="跟家希说点什么~" maxlength="200">
-      <button id="chat-panel-send">↑</button>
+      <button id="chat-panel-send">➤</button>
     </div>
   `;
   document.body.appendChild(panel);
