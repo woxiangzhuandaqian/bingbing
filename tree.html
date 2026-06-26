@@ -25,6 +25,8 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
 
 .mood-text { text-align: center; margin-top: 10px; font-size: 13px; color: #666; }
 
+.loading-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 14px; color: #ccc; }
+
 .pet-area {
   flex: 1; position: relative; overflow: hidden;
   background: #fff;
@@ -93,7 +95,8 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
 </div>
 
 <div class="pet-area">
-  <div class="pet" id="pet">
+  <div class="loading-text" id="loading-text">加载中...</div>
+  <div class="pet" id="pet" style="opacity:0">
     <div class="pet-bubble" id="pet-bubble"></div>
   </div>
 </div>
@@ -340,7 +343,15 @@ pet.addEventListener('pointerup', () => {
 // ====== 初始化 ======
 posX = 30 + Math.random() * 40;
 pet.style.left = posX + '%';
-setSpritesheet();
+
+const preload = new Image();
+preload.onload = function() {
+  setSpritesheet();
+  pet.style.opacity = '1';
+  document.getElementById('loading-text').style.display = 'none';
+  init();
+};
+preload.src = PETS[petId];
 
 async function init() {
   await loadPetStatus();
@@ -348,7 +359,6 @@ async function init() {
   playState(state);
   startCatLife();
 }
-init();
 </script>
 <script src="tab-bar.js"></script>
 </body>
