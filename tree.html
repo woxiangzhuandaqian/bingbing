@@ -54,17 +54,15 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
 
 .test-panel {
   position: fixed; bottom: 70px; left: 0; width: 100%; z-index: 50;
-  padding: 10px 16px; background: white; border-top: 1px solid #f0f0f0;
-  display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 8px 16px; background: white; border-top: 1px solid #f0f0f0;
+  display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
 }
-.test-panel::-webkit-scrollbar { display: none; }
 .test-btn {
   padding: 8px 14px; border: none; border-radius: 20px;
   background: #f5f5f5; color: #333; font-size: 12px; cursor: pointer;
-  white-space: nowrap; flex-shrink: 0; transition: all 0.2s;
+  white-space: nowrap; transition: all 0.2s;
 }
 .test-btn:active { transform: scale(0.92); background: #e0e0e0; }
-.test-btn.switch { background: #e8f5e9; color: #2e7d32; }
 </style>
 </head>
 <body>
@@ -82,6 +80,9 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
   <button class="test-btn" onclick="playState('sleeping')">😴 睡觉</button>
   <button class="test-btn" onclick="playState('eating')">🍚 吃饭</button>
   <button class="test-btn" onclick="playState('drinking')">💧 喝水</button>
+  <button class="test-btn" onclick="playExtra('bixin')">💗 比心</button>
+  <button class="test-btn" onclick="playExtra('yarn')">🧶 玩毛线球</button>
+  <button class="test-btn" onclick="playExtra('angry')">💢 生气</button>
 </div>
 
 <div class="info">
@@ -148,6 +149,9 @@ let timeoutId = null, moveInterval = null, posX = 50;
 function playState(state) {
   if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
   clearInterval(moveInterval);
+  // 切回主精灵图
+  pet.style.backgroundImage = `url("${PETS[petId]}")`;
+  pet.style.backgroundSize = '800% 1200%';
 
   let runLaps = 0;
 
@@ -180,18 +184,60 @@ function playState(state) {
 
 function setSpritesheet() { pet.style.backgroundImage = `url("${PETS[petId]}")`; }
 
+// 额外精灵图动作（比心/玩毛线球/生气）
+const EXTRA_SPRITE = 'pet/sprites/linecat-extra.spritesheet.webp';
+const EXTRA_GRID = { cols: 8, rows: 6 };
+const EXTRA_ANIMATIONS = {
+  bixin: { row: 3, n: 4, dur: 140, last: 260 },
+  yarn: { row: 4, n: 6, dur: 140, last: 260 },
+  angry: { row: 5, n: 6, dur: 140, last: 260 },
+};
+
+function playExtra(name) {
+  if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+  clearInterval(moveInterval);
+
+  const anim = EXTRA_ANIMATIONS[name];
+  if (!anim) return;
+
+  pet.style.backgroundImage = `url("${EXTRA_SPRITE}")`;
+  pet.style.backgroundSize = (EXTRA_GRID.cols * 100) + '% ' + (EXTRA_GRID.rows * 100) + '%';
+
+  const frames = Array.from({length: anim.n}, (_, i) => ({
+    rowIndex: anim.row, columnIndex: i,
+    frameDurationMs: i === anim.n - 1 ? anim.last : anim.dur
+  }));
+
+  let i = 0;
+  const getBgPosExtra = (f) => {
+    const x = EXTRA_GRID.cols > 1 ? (f.columnIndex / (EXTRA_GRID.cols - 1)) * 100 : 0;
+    const y = EXTRA_GRID.rows > 1 ? (f.rowIndex / (EXTRA_GRID.rows - 1)) * 100 : 0;
+    return `${x}% ${y}%`;
+  };
+
+  pet.style.backgroundPosition = getBgPosExtra(frames[0]);
+  const step = () => {
+    timeoutId = setTimeout(() => {
+      i = (i + 1) % frames.length;
+      pet.style.backgroundPosition = getBgPosExtra(frames[i]);
+      step();
+    }, frames[i].frameDurationMs);
+  };
+  step();
+}
+
 // ====== 猫的语言 ======
 const CAT_WORDS = {
-  happy: ['喵~今天真开心!', '最喜欢你们了❤️', '想贴贴~', '呼噜呼噜~', '好幸福呀', '蹦蹦跳跳~'],
-  normal: ['嗯...还行吧', '有点无聊', '陪我玩嘛~', '发呆中...', '打个哈欠~'],
+  happy: ['喵~今天真开心!', '最喜欢你们了❤️', '想贴贴~', '呼噜呼噜~', '好幸福呀', '蹦蹦跳跳~', '比心💗', '玩毛线球去~🧶'],
+  normal: ['嗯...还行吧', '有点无聊', '陪我玩嘛~', '发呆中...', '打个哈欠~', '想玩毛线球🧶'],
   hungry: ['肚子咕咕叫了...', '想吃鱼鱼🐟', '饿饿...', '有吃的吗?', '快去点单啦!'],
   thirsty: ['好渴...💧', '想喝水', '嘴巴干干的', '给我点水喝嘛'],
-  sad: ['哼，不理你们了', '好无聊啊...', '想要摸摸', '为什么不陪我', '孤单...'],
+  sad: ['哼，不理你们了💢', '好无聊啊...', '想要摸摸', '为什么不陪我', '生气了💢', '孤单...'],
   dying: ['呜呜...快来看看我', '要饿晕了...', '救命...', '快来喂我!', '好难过...'],
-  petted: ['喵呜~', '蹭蹭', '咕噜咕噜~', '再摸摸嘛', '好舒服~', '❤️'],
+  petted: ['喵呜~', '蹭蹭', '咕噜咕噜~', '再摸摸嘛', '好舒服~', '❤️', '比心💗'],
   fed: ['好吃!还要!', '满足~打嗝', '鱼鱼真好吃', '饱饱的~'],
   watered: ['咕咚咕咚~', '舒服了!', '谢谢水水💧', '润了润了'],
-  loved: ['嘿嘿~', '开心!', '有人爱真好', '心情变好了!', '❤️❤️❤️'],
+  loved: ['嘿嘿~', '开心!', '有人爱真好', '心情变好了!', '❤️❤️❤️', '比心比心💗'],
 };
 
 let petStatus = { hunger: 100, water: 100, happiness: 100 };
