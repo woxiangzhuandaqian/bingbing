@@ -102,7 +102,6 @@ function showSwitchUser() {
 const ALL_ACHIEVEMENTS = ACHIEVEMENTS;
 
 async function loadAchievements() {
-  await verifyAchievements();
   const unlocked = await getUnlockedAchievements();
 
   const unlockedCount = ALL_ACHIEVEMENTS.filter(a => unlocked.includes(a.id)).length;
@@ -117,69 +116,6 @@ async function loadAchievements() {
       '<span class="achievement-status ' + (isUnlocked ? 'done' : 'todo') + '">' + (isUnlocked ? '已解锁' : '未解锁') + '</span>' +
     '</div>';
   }).join('');
-}
-
-async function verifyAchievements() {
-  if (User.isViewMode()) return;
-  const user = User.get();
-  if (!user) return;
-  const unlocked = await getUnlockedAchievements();
-
-  if (!unlocked.includes('first_order')) {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/orders?user=eq.' + user + '&select=id&limit=1', { headers: supabaseHeaders });
-    const data = res.ok ? await res.json() : [];
-    if (data.length > 0) await unlockAchievement('first_order');
-  }
-
-  if (!unlocked.includes('streak_3')) {
-    const streak = await getOrderStreak();
-    if (streak >= 3) await unlockAchievement('streak_3');
-  }
-
-  if (!unlocked.includes('streak_7')) {
-    const streak = await getOrderStreak();
-    if (streak >= 7) await unlockAchievement('streak_7');
-  }
-
-  if (!unlocked.includes('wishlist_done')) {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/dishes?from_wish=eq.true&select=id&limit=1', { headers: supabaseHeaders });
-    const data = res.ok ? await res.json() : [];
-    if (data.length > 0) await unlockAchievement('wishlist_done');
-  }
-
-  if (!unlocked.includes('msg_10')) {
-    const count = await getMessageCount();
-    if (count >= 10) await unlockAchievement('msg_10');
-  }
-
-  if (!unlocked.includes('msg_30')) {
-    const count = await getMessageCount();
-    if (count >= 30) await unlockAchievement('msg_30');
-  }
-
-  if (!unlocked.includes('random_5')) {
-    const count = await getInteractionCount('random');
-    if (count >= 5) await unlockAchievement('random_5');
-  }
-
-  if (!unlocked.includes('order_10')) {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/orders?user=eq.' + user + '&select=eat_date', { headers: supabaseHeaders });
-    const data = res.ok ? await res.json() : [];
-    const distinctDates = [...new Set(data.map(o => o.eat_date))];
-    if (distinctDates.length >= 10) await unlockAchievement('order_10');
-  }
-
-  if (!unlocked.includes('wishlist_5')) {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/wishlist?user=eq.' + user + '&select=id', { headers: supabaseHeaders });
-    const data = res.ok ? await res.json() : [];
-    if (data.length >= 5) await unlockAchievement('wishlist_5');
-  }
-
-  if (!unlocked.includes('review_10')) {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/reviews?user=eq.' + user + '&select=id', { headers: supabaseHeaders });
-    const data = res.ok ? await res.json() : [];
-    if (data.length >= 10) await unlockAchievement('review_10');
-  }
 }
 
 loadAchievements();
