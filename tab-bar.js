@@ -2,7 +2,7 @@
   const tabs = [
     { icon: '🍽️', label: '菜单', href: 'menu.html' },
     { icon: '💫', label: '心愿', href: 'wishlist.html' },
-    // { icon: '🌱', label: '爱情树', href: 'tree.html' },
+    { icon: '🐱', label: '喵喵', href: 'tree.html' },
     { icon: '💌', label: '留言', href: 'message.html' },
     { icon: '📋', label: '记录', href: 'orders.html' },
     { icon: '🏆', label: '成就', href: 'achievements.html' },

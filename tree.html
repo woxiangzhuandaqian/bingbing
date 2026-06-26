@@ -8,92 +8,93 @@
 <link rel="stylesheet" href="style.css">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { min-height: 100vh; display: flex; flex-direction: column; background: #fefefe; }
+body { min-height: 100vh; display: flex; flex-direction: column; background: #fff; overflow: hidden; padding-bottom: 0 !important; }
 
-.info { text-align: center; padding: 28px 20px 10px; }
-.info-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 6px; }
-.info-stage { font-size: 13px; color: #999; margin-bottom: 4px; }
-.info-count { font-size: 11px; color: #bbb; }
-.info-progress { width: 50%; max-width: 180px; height: 4px; background: #eee; border-radius: 2px; margin: 10px auto 0; overflow: hidden; }
-.info-progress-bar { height: 100%; border-radius: 2px; transition: width 1.5s ease; background: linear-gradient(90deg, #ffab91, #f48fb1, #ce93d8); }
+.info { text-align: center; padding: 24px 20px 8px; background: #fff; }
+.info-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 10px; }
+
+.status-bars { display: flex; flex-direction: column; gap: 8px; align-items: center; padding: 0 40px; }
+.status-bar { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 220px; }
+.status-bar-icon { font-size: 16px; width: 24px; text-align: center; }
+.status-bar-track { flex: 1; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+.status-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.status-bar-fill.hunger { background: linear-gradient(90deg, #ff8a65, #ff5722); }
+.status-bar-fill.water { background: linear-gradient(90deg, #4fc3f7, #0288d1); }
+.status-bar-fill.happiness { background: linear-gradient(90deg, #f48fb1, #e91e63); }
+.status-bar-val { font-size: 11px; color: #999; width: 30px; text-align: right; }
+
+.mood-text { text-align: center; margin-top: 10px; font-size: 13px; color: #666; }
 
 .pet-area {
   flex: 1; position: relative; overflow: hidden;
-  border-bottom: 3px solid #eee;
-  margin-bottom: 70px;
+  background: #fff;
 }
 
 .pet {
-  position: absolute; bottom: 0; left: 50%;
-  width: 80px; height: 80px;
-  cursor: pointer; transition: none;
-  image-rendering: pixelated;
-}
-
-.pet img {
-  width: 100%; height: 100%; object-fit: contain;
-  pointer-events: none;
+  position: absolute; bottom: 110px; left: 50%;
+  width: 128px; height: 139px;
+  background-repeat: no-repeat;
+  background-size: 800% 1200%;
+  background-position: 0% 0%;
+  image-rendering: auto;
+  cursor: pointer; user-select: none; touch-action: none;
+  transform: translateX(-50%);
 }
 
 .pet-bubble {
-  position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
-  background: white; border: 2px solid #eee; border-radius: 12px;
-  padding: 4px 10px; font-size: 13px; white-space: nowrap;
+  position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+  background: white; border: 2px solid #eee; border-radius: 14px;
+  padding: 6px 12px; font-size: 13px; white-space: nowrap;
   opacity: 0; transition: opacity 0.3s; pointer-events: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
 }
 .pet-bubble.show { opacity: 1; }
-.pet-bubble::after {
-  content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
-  border-left: 6px solid transparent; border-right: 6px solid transparent;
-  border-top: 6px solid white;
-}
-
-.actions {
-  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
-  display: flex; gap: 12px; z-index: 10;
-}
-.action-btn {
-  width: 44px; height: 44px; border-radius: 50%; border: none;
-  background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  font-size: 20px; cursor: pointer; transition: all 0.2s;
-}
-.action-btn:active { transform: scale(0.85); }
 
 .test-panel {
-  position: fixed; top: 90px; left: 10px; z-index: 999;
-  background: rgba(0,0,0,0.7); border-radius: 12px; padding: 8px;
-  display: flex; flex-wrap: wrap; gap: 5px; max-width: 160px;
+  position: fixed; bottom: 70px; left: 0; width: 100%; z-index: 50;
+  padding: 10px 16px; background: white; border-top: 1px solid #f0f0f0;
+  display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
 }
-.test-btn { padding: 4px 8px; border: none; border-radius: 6px; background: rgba(255,255,255,0.15); color: white; font-size: 10px; cursor: pointer; }
+.test-panel::-webkit-scrollbar { display: none; }
+.test-btn {
+  padding: 8px 14px; border: none; border-radius: 20px;
+  background: #f5f5f5; color: #333; font-size: 12px; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0; transition: all 0.2s;
+}
+.test-btn:active { transform: scale(0.92); background: #e0e0e0; }
+.test-btn.switch { background: #e8f5e9; color: #2e7d32; }
 </style>
 </head>
 <body>
 
 <div class="test-panel">
-  <button class="test-btn" onclick="forceState('idle')">发呆</button>
-  <button class="test-btn" onclick="forceState('walk_left')">走左</button>
-  <button class="test-btn" onclick="forceState('walk_right')">走右</button>
-  <button class="test-btn" onclick="forceState('idle_to_sleep')">困了</button>
-  <button class="test-btn" onclick="forceState('sleep')">睡觉</button>
+  <button class="test-btn" onclick="playState('idle')">😺 待机</button>
+  <button class="test-btn" onclick="playState('waving')">👋 挥手</button>
+  <button class="test-btn" onclick="playState('jumping')">🦘 跳跃</button>
+  <button class="test-btn" onclick="playState('running-right')">➡️ 向右跑</button>
+  <button class="test-btn" onclick="playState('running-left')">⬅️ 向左跑</button>
+  <button class="test-btn" onclick="playState('running')">💻 工作</button>
+  <button class="test-btn" onclick="playState('waiting')">⏳ 等待</button>
+  <button class="test-btn" onclick="playState('failed')">😿 伤心</button>
+  <button class="test-btn" onclick="playState('review')">🙃 摇头晃脑</button>
+  <button class="test-btn" onclick="playState('sleeping')">😴 睡觉</button>
+  <button class="test-btn" onclick="playState('eating')">🍚 吃饭</button>
+  <button class="test-btn" onclick="playState('drinking')">💧 喝水</button>
 </div>
 
 <div class="info">
   <div class="info-title">🐱 我们的猫</div>
-  <div class="info-stage" id="stage-name"></div>
-  <div class="info-count" id="tree-count"></div>
-  <div class="info-progress"><div class="info-progress-bar" id="progress-bar"></div></div>
+  <div class="status-bars">
+    <div class="status-bar"><span class="status-bar-icon">🍖</span><div class="status-bar-track"><div class="status-bar-fill hunger" id="bar-hunger"></div></div><span class="status-bar-val" id="val-hunger">100</span></div>
+    <div class="status-bar"><span class="status-bar-icon">💧</span><div class="status-bar-track"><div class="status-bar-fill water" id="bar-water"></div></div><span class="status-bar-val" id="val-water">100</span></div>
+    <div class="status-bar"><span class="status-bar-icon">❤️</span><div class="status-bar-track"><div class="status-bar-fill happiness" id="bar-happiness"></div></div><span class="status-bar-val" id="val-happiness">100</span></div>
+  </div>
+  <div class="mood-text" id="mood-text"></div>
 </div>
 
-<div class="pet-area" id="pet-area">
-  <div class="pet" id="pet" onclick="onPetClick()">
+<div class="pet-area">
+  <div class="pet" id="pet">
     <div class="pet-bubble" id="pet-bubble"></div>
-    <img id="pet-img" src="pet/idle.gif">
-  </div>
-  <div class="actions">
-    <button class="action-btn" onclick="petAction('pat')">🤚</button>
-    <button class="action-btn" onclick="petAction('feed')">🐟</button>
-    <button class="action-btn" onclick="petAction('love')">❤️</button>
   </div>
 </div>
 
@@ -101,130 +102,253 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #fe
 <script src="supabase.js"></script>
 <script>
 const pet = document.getElementById('pet');
-const petImg = document.getElementById('pet-img');
-const petArea = document.getElementById('pet-area');
+const GRID_COLUMNS = 8, GRID_ROWS = 12;
 
-let currentState = 'idle';
-let posX = 50;
-let moveSpeed = 1.5;
-let stateTimer = null;
-let moveInterval = null;
+const PETS = { linecat: 'pet/sprites/linecat.spritesheet.webp', moli: 'pet/sprites/moli.spritesheet.webp' };
+let petId = 'linecat';
 
-const GIFS = {
-  idle: 'pet/idle.gif',
-  walk_left: 'pet/walk-left.gif',
-  walk_right: 'pet/walk-right.gif',
-  idle_to_sleep: 'pet/idle-to-sleep.gif',
-  sleep: 'pet/sleep.gif',
-  sleep_to_idle: 'pet/sleep-to-idle.gif',
+const IDLE_FRAMES = [
+  { rowIndex:0, columnIndex:0, frameDurationMs:280 },
+  { rowIndex:0, columnIndex:1, frameDurationMs:110 },
+  { rowIndex:0, columnIndex:2, frameDurationMs:110 },
+  { rowIndex:0, columnIndex:3, frameDurationMs:140 },
+  { rowIndex:0, columnIndex:4, frameDurationMs:140 },
+  { rowIndex:0, columnIndex:5, frameDurationMs:320 },
+];
+const IDLE_SLOW_FRAMES = IDLE_FRAMES.map(f => ({ ...f, frameDurationMs: f.frameDurationMs * 6 }));
+
+function buildFS(row, cnt, ms, lastMs) {
+  return Array.from({length:cnt}, (_,i) => ({ rowIndex:row, columnIndex:i, frameDurationMs: i===cnt-1?lastMs:ms }));
+}
+
+const ANIMATION_FRAMES = {
+  idle: IDLE_FRAMES,
+  'running-right': buildFS(1,8,120,220),
+  'running-left': buildFS(2,8,120,220),
+  waving: buildFS(3,4,140,280),
+  jumping: buildFS(4,5,140,280),
+  failed: buildFS(5,8,140,240),
+  waiting: buildFS(6,6,150,260),
+  running: buildFS(7,6,120,220),
+  review: buildFS(8,6,150,280),
+  sleeping: buildFS(9,4,260,700),
+  eating: buildFS(10,6,180,300),
+  drinking: buildFS(11,6,180,300),
 };
 
-const STATE_DURATION = {
-  idle: [3000, 6000],
-  walk_left: [3000, 6000],
-  walk_right: [3000, 6000],
-  idle_to_sleep: [1600, 1600],
-  sleep: [5000, 10000],
-  sleep_to_idle: [1600, 1600],
-};
+function getBgPos(f) {
+  return `${(f.columnIndex/(GRID_COLUMNS-1))*100}% ${(f.rowIndex/(GRID_ROWS-1))*100}%`;
+}
 
-function setState(state) {
-  currentState = state;
-  petImg.src = GIFS[state];
+let timeoutId = null, moveInterval = null, posX = 50;
+
+function playState(state) {
+  if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
   clearInterval(moveInterval);
 
-  if (state === 'walk_left' || state === 'walk_right') {
+  let runLaps = 0;
+
+  if (state === 'running-right' || state === 'running-left') {
+    runLaps = 0;
     moveInterval = setInterval(() => {
-      if (state === 'walk_left') posX -= moveSpeed;
-      else posX += moveSpeed;
-      posX = Math.max(5, Math.min(posX, 95));
+      posX += state === 'running-right' ? 1.5 : -1.5;
+      if (posX >= 85) { posX = 85; runLaps++; if (runLaps >= 4) { clearInterval(moveInterval); playState('idle'); return; } clearInterval(moveInterval); playState('running-left'); return; }
+      if (posX <= 15) { posX = 15; runLaps++; if (runLaps >= 4) { clearInterval(moveInterval); playState('idle'); return; } clearInterval(moveInterval); playState('running-right'); return; }
       pet.style.left = posX + '%';
     }, 30);
   }
 
-  const [minTime, maxTime] = STATE_DURATION[state];
-  const duration = minTime + Math.random() * (maxTime - minTime);
+  const frames = ANIMATION_FRAMES[state] || IDLE_FRAMES;
+  const sequence = state === 'idle' ? IDLE_SLOW_FRAMES : [...frames, ...frames, ...frames, ...IDLE_SLOW_FRAMES];
+  const loopStart = state === 'idle' ? 0 : frames.length * 3;
 
-  clearTimeout(stateTimer);
-  stateTimer = setTimeout(() => {
-    const next = getNextState(state);
-    setState(next);
-  }, duration);
+  let i = 0;
+  pet.style.backgroundPosition = getBgPos(sequence[0]);
+  const step = () => {
+    timeoutId = setTimeout(() => {
+      i++;
+      if (i >= sequence.length) i = loopStart;
+      pet.style.backgroundPosition = getBgPos(sequence[i]);
+      step();
+    }, sequence[i].frameDurationMs);
+  };
+  step();
 }
 
-function getNextState(state) {
-  if (state === 'idle') return randomChoice(['idle', 'idle', 'walk_left', 'walk_right', 'idle_to_sleep']);
-  if (state === 'idle_to_sleep') return 'sleep';
-  if (state === 'sleep') return randomChoice(['sleep', 'sleep_to_idle']);
-  if (state === 'sleep_to_idle') return 'idle';
-  if (state === 'walk_left') return randomChoice(['idle', 'walk_left', 'walk_right']);
-  if (state === 'walk_right') return randomChoice(['idle', 'walk_left', 'walk_right']);
-  return 'idle';
-}
+function setSpritesheet() { pet.style.backgroundImage = `url("${PETS[petId]}")`; }
 
-function randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+// ====== 猫的语言 ======
+const CAT_WORDS = {
+  happy: ['喵~今天真开心!', '最喜欢你们了❤️', '想贴贴~', '呼噜呼噜~', '好幸福呀', '蹦蹦跳跳~'],
+  normal: ['嗯...还行吧', '有点无聊', '陪我玩嘛~', '发呆中...', '打个哈欠~'],
+  hungry: ['肚子咕咕叫了...', '想吃鱼鱼🐟', '饿饿...', '有吃的吗?', '快去点单啦!'],
+  thirsty: ['好渴...💧', '想喝水', '嘴巴干干的', '给我点水喝嘛'],
+  sad: ['哼，不理你们了', '好无聊啊...', '想要摸摸', '为什么不陪我', '孤单...'],
+  dying: ['呜呜...快来看看我', '要饿晕了...', '救命...', '快来喂我!', '好难过...'],
+  petted: ['喵呜~', '蹭蹭', '咕噜咕噜~', '再摸摸嘛', '好舒服~', '❤️'],
+  fed: ['好吃!还要!', '满足~打嗝', '鱼鱼真好吃', '饱饱的~'],
+  watered: ['咕咚咕咚~', '舒服了!', '谢谢水水💧', '润了润了'],
+  loved: ['嘿嘿~', '开心!', '有人爱真好', '心情变好了!', '❤️❤️❤️'],
+};
 
-function forceState(state) { setState(state); }
+let petStatus = { hunger: 100, water: 100, happiness: 100 };
+let speechTimer = null;
 
 function showBubble(text) {
   const bubble = document.getElementById('pet-bubble');
   bubble.textContent = text;
   bubble.classList.add('show');
-  setTimeout(() => bubble.classList.remove('show'), 2000);
+  setTimeout(() => bubble.classList.remove('show'), 2500);
 }
 
-function onPetClick() {
-  const msgs = ['喵~', '蹭蹭', '咕噜咕噜', '嗯?', '摸摸~', '❤️'];
-  showBubble(randomChoice(msgs));
-  setState('idle');
+function getMoodState() {
+  const { hunger, water, happiness } = petStatus;
+  const min = Math.min(hunger, water, happiness);
+  if (min < 20) return 'dying';
+  if (hunger < 40) return 'hungry';
+  if (water < 40) return 'thirsty';
+  if (happiness < 40) return 'sad';
+  if (min > 70) return 'happy';
+  return 'normal';
 }
 
-function petAction(type) {
-  if (type === 'pat') {
-    showBubble(randomChoice(['呼噜呼噜~', '好舒服~', '再摸摸', '喵~']));
-  } else if (type === 'feed') {
-    showBubble(randomChoice(['好吃!', '还要!', '😋', '鱼鱼!']));
-  } else if (type === 'love') {
-    showBubble(randomChoice(['❤️', '爱你~', '贴贴', '💕']));
+function getMoodText() {
+  const mood = getMoodState();
+  const map = { happy: '✨ 超级开心!', normal: '😊 还不错~', hungry: '🍖 有点饿了...', thirsty: '💧 想喝水...', sad: '😢 心情不好', dying: '⚠️ 快来照顾我!' };
+  return map[mood] || '';
+}
+
+function getStateForMood() {
+  const mood = getMoodState();
+  if (mood === 'happy') return ['idle', 'jumping', 'running-right', 'waving', 'running'][Math.floor(Math.random()*5)];
+  if (mood === 'normal') return ['idle', 'idle', 'running-right', 'running-left', 'waving'][Math.floor(Math.random()*5)];
+  if (mood === 'hungry') return ['waiting', 'eating', 'idle'][Math.floor(Math.random()*3)];
+  if (mood === 'thirsty') return ['waiting', 'drinking', 'idle'][Math.floor(Math.random()*3)];
+  if (mood === 'sad') return ['waiting', 'sleeping', 'failed'][Math.floor(Math.random()*3)];
+  if (mood === 'dying') return ['failed', 'sleeping'][Math.floor(Math.random()*2)];
+  return 'idle';
+}
+
+function catSpeak() {
+  const mood = getMoodState();
+  const words = CAT_WORDS[mood];
+  showBubble(words[Math.floor(Math.random() * words.length)]);
+}
+
+function startCatLife() {
+  // 每5-10秒说一句话
+  function scheduleSpeech() {
+    const delay = 5000 + Math.random() * 8000;
+    speechTimer = setTimeout(() => {
+      catSpeak();
+      scheduleSpeech();
+    }, delay);
   }
-  setState('idle');
-  if (typeof trackInteraction !== 'undefined') trackInteraction('reply');
+  scheduleSpeech();
+
+  // 每8-15秒换个动作
+  function scheduleAction() {
+    setTimeout(() => {
+      const state = getStateForMood();
+      playState(state);
+      scheduleAction();
+    }, 8000 + Math.random() * 7000);
+  }
+  scheduleAction();
 }
 
-// 初始化位置
+function updateStatusUI() {
+  const { hunger, water, happiness } = petStatus;
+  document.getElementById('bar-hunger').style.width = hunger + '%';
+  document.getElementById('bar-water').style.width = water + '%';
+  document.getElementById('bar-happiness').style.width = happiness + '%';
+  document.getElementById('val-hunger').textContent = Math.round(hunger);
+  document.getElementById('val-water').textContent = Math.round(water);
+  document.getElementById('val-happiness').textContent = Math.round(happiness);
+  document.getElementById('mood-text').textContent = getMoodText();
+}
+
+// ====== 属性衰减计算 ======
+function calculateDecay(status) {
+  const now = Date.now();
+  const elapsed = (now - status.last_update) / (1000 * 60 * 60); // 小时
+  const hunger = Math.max(0, status.hunger - elapsed * 3);
+  const water = Math.max(0, status.water - elapsed * 2);
+  const happiness = Math.max(0, status.happiness - elapsed * 2);
+  return { hunger, water, happiness };
+}
+
+async function loadPetStatus() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/pet_status?id=eq.1', { headers: supabaseHeaders });
+  if (!res.ok) return;
+  const data = await res.json();
+  if (!data.length) return;
+  const raw = data[0];
+  petStatus = calculateDecay(raw);
+  updateStatusUI();
+
+  // 保存衰减后的值
+  await fetch(SUPABASE_URL + '/rest/v1/pet_status?id=eq.1', {
+    method: 'PATCH', headers: supabaseHeaders,
+    body: JSON.stringify({ hunger: Math.round(petStatus.hunger), water: Math.round(petStatus.water), happiness: Math.round(petStatus.happiness), last_update: Date.now() })
+  });
+}
+
+// ====== 点击猫 ======
+function onPetClick() {
+  const words = CAT_WORDS.petted;
+  showBubble(words[Math.floor(Math.random() * words.length)]);
+  playState('waving');
+  // 点击加心情
+  petStatus.happiness = Math.min(100, petStatus.happiness + 2);
+  updateStatusUI();
+  savePetStatus();
+}
+
+async function savePetStatus() {
+  await fetch(SUPABASE_URL + '/rest/v1/pet_status?id=eq.1', {
+    method: 'PATCH', headers: supabaseHeaders,
+    body: JSON.stringify({ hunger: Math.round(petStatus.hunger), water: Math.round(petStatus.water), happiness: Math.round(petStatus.happiness), last_update: Date.now() })
+  });
+}
+
+// ====== 拖动 ======
+let dragging = false, dragStartX, dragStartY, petStartLeft, petStartTop;
+pet.addEventListener('pointerdown', (e) => {
+  dragging = false;
+  dragStartX = e.clientX; dragStartY = e.clientY;
+  petStartLeft = pet.offsetLeft; petStartTop = pet.offsetTop;
+  pet.setPointerCapture(e.pointerId);
+  pet.style.transform = 'none'; pet.style.cursor = 'grabbing';
+});
+pet.addEventListener('pointermove', (e) => {
+  const dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
+  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragging = true;
+  if (dragging) {
+    const maxW = pet.parentElement.offsetWidth - pet.offsetWidth;
+    const maxH = pet.parentElement.offsetHeight - pet.offsetHeight;
+    pet.style.left = Math.max(0, Math.min(petStartLeft + dx, maxW)) + 'px';
+    pet.style.bottom = 'auto';
+    pet.style.top = Math.max(0, Math.min(petStartTop + dy, maxH)) + 'px';
+  }
+});
+pet.addEventListener('pointerup', () => {
+  pet.style.cursor = 'pointer';
+  if (!dragging) onPetClick();
+});
+
+// ====== 初始化 ======
 posX = 30 + Math.random() * 40;
 pet.style.left = posX + '%';
-setState('idle');
+setSpritesheet();
 
-// 加载成长值
-const STAGES = [
-  { name: '猫蛋', min: 0, max: 5 },
-  { name: '小奶猫', min: 6, max: 15 },
-  { name: '幼猫', min: 16, max: 30 },
-  { name: '小猫', min: 31, max: 60 },
-  { name: '大猫', min: 61, max: 100 },
-  { name: '猫王', min: 101, max: 150 },
-  { name: '神猫', min: 151, max: 99999 },
-];
-
-async function loadPet() {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/interactions?select=points', { headers: supabaseHeaders });
-  let count = 0;
-  if (res.ok) {
-    const data = await res.json();
-    count = data.reduce((sum, d) => sum + (d.points || 1), 0);
-  }
-  let idx = 0;
-  for (let i = STAGES.length - 1; i >= 0; i--) {
-    if (count >= STAGES[i].min) { idx = i; break; }
-  }
-  const stage = STAGES[idx];
-  const progress = (count - stage.min) / (stage.max - stage.min + 1);
-  document.getElementById('stage-name').textContent = '第' + (idx + 1) + '阶段 · ' + stage.name;
-  document.getElementById('tree-count').textContent = '成长值 ' + count + ' · 下一阶段还需 ' + Math.max(stage.max - count + 1, 0);
-  document.getElementById('progress-bar').style.width = Math.min(progress * 100, 100) + '%';
+async function init() {
+  await loadPetStatus();
+  const state = getStateForMood();
+  playState(state);
+  startCatLife();
 }
-loadPet();
+init();
 </script>
 <script src="tab-bar.js"></script>
 </body>

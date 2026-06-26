@@ -119,9 +119,35 @@ const GROWTH_VALUES = {
   reply: 1
 };
 
+// 互动对猫属性的加成
+const PET_BOOST = {
+  message: { water: 3, happiness: 1 },
+  wishlist: { happiness: 3 },
+  order: { hunger: 5, happiness: 2 },
+  review: { hunger: 2, happiness: 1 },
+  wish_done: { happiness: 8, hunger: 3 },
+  reply: { water: 2, happiness: 1 }
+};
+
 function trackInteraction(action) {
   const value = GROWTH_VALUES[action] || 1;
   const user = User.get();
   if (!user) return;
   DB.insert('interactions', { user: user, action: action, points: value, time: Date.now() });
+  // 更新猫属性
+  const boost = PET_BOOST[action];
+  if (boost) {
+    fetch(SUPABASE_URL + '/rest/v1/pet_status?id=eq.1', { headers: supabaseHeaders })
+      .then(r => r.json()).then(data => {
+        if (!data.length) return;
+        const s = data[0];
+        const update = { last_update: Date.now() };
+        if (boost.hunger) update.hunger = Math.min(100, s.hunger + boost.hunger);
+        if (boost.water) update.water = Math.min(100, s.water + boost.water);
+        if (boost.happiness) update.happiness = Math.min(100, s.happiness + boost.happiness);
+        fetch(SUPABASE_URL + '/rest/v1/pet_status?id=eq.1', {
+          method: 'PATCH', headers: supabaseHeaders, body: JSON.stringify(update)
+        });
+      });
+  }
 }
