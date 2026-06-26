@@ -102,22 +102,6 @@ body { overflow-y: auto; }
 .detail-rating { margin-bottom: 20px; }
 .detail-rating-label { font-size: 13px; color: var(--gray); margin-bottom: 6px; text-align: center; }
 
-.detail-review { margin-bottom: 20px; width: 100%; }
-.review-btns { display: flex; gap: 10px; justify-content: center; margin: 8px 0; }
-.review-btn { padding: 8px 20px; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; transition: all 0.3s; }
-.review-btn.good { background: #e8f5e9; color: #2e7d32; }
-.review-btn.bad { background: #fce4ec; color: #c62828; }
-.review-btn.good.active { background: #66bb6a; color: white; }
-.review-btn.bad.active { background: #ef5350; color: white; }
-.review-btn:active { transform: scale(0.95); }
-.review-input { width: 100%; padding: 10px 14px; border: 1.5px solid #e0e0e0; border-radius: 12px; font-size: 13px; margin-top: 8px; box-sizing: border-box; }
-.review-input:focus { outline: none; border-color: var(--green); }
-.review-history { margin-top: 12px; max-height: 150px; overflow-y: auto; }
-.review-item { padding: 8px 12px; background: #f9f9f9; border-radius: 10px; margin-bottom: 6px; font-size: 13px; }
-.review-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-.review-item-user { font-weight: 500; color: #666; }
-.review-item-time { font-size: 11px; color: #aaa; }
-
 /* 购物车悬浮按钮 */
 .cart-fab {
   position: fixed; top: 80px; left: 20px; z-index: 150;
@@ -209,15 +193,6 @@ body { overflow-y: auto; }
         <span class="star" onclick="rate(4)">★</span>
         <span class="star" onclick="rate(5)">★</span>
       </div>
-    </div>
-    <div class="detail-review">
-      <div class="detail-rating-label">今日评价</div>
-      <div class="review-btns">
-        <button class="review-btn good" id="review-good-btn" onclick="submitReview('good')">👍 好评</button>
-        <button class="review-btn bad" id="review-bad-btn" onclick="submitReview('bad')">👎 吐槽</button>
-      </div>
-      <input class="review-input" id="review-input" placeholder="说两句~（可选）" maxlength="50">
-      <div class="review-history" id="review-history"></div>
     </div>
     <button class="btn btn-primary btn-small" id="detail-order-btn" onclick="addToCartFromDetail()">想吃这个！</button>
   </div>
@@ -360,7 +335,6 @@ function showDetail(key) {
     s.classList.toggle('active', i < r);
   });
 
-  loadReviews(key);
   document.getElementById('detail-overlay').classList.add('show');
 }
 
@@ -512,54 +486,6 @@ function closeRandomAndAdd() {
   document.getElementById('random-overlay').classList.remove('show');
 }
 
-// ====== 每日评价 ======
-let currentReviewRating = '';
-
-async function loadReviews(dishKey) {
-  currentReviewRating = '';
-  document.getElementById('review-good-btn').classList.remove('active');
-  document.getElementById('review-bad-btn').classList.remove('active');
-  document.getElementById('review-input').value = '';
-  const history = document.getElementById('review-history');
-  history.innerHTML = '';
-  const res = await fetch(SUPABASE_URL + '/rest/v1/reviews?dish_key=eq.' + dishKey + '&order=time.desc&limit=10', { headers: supabaseHeaders });
-  if (!res.ok) return;
-  const reviews = await res.json();
-  if (reviews.length === 0) {
-    history.innerHTML = '<div style="text-align:center;color:#ccc;font-size:12px;padding:8px">还没有评价~</div>';
-    return;
-  }
-  history.innerHTML = reviews.map(r => {
-    const d = new Date(r.time);
-    const timeStr = (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-    const emoji = r.rating === 'good' ? '👍' : '👎';
-    const userName = r.user === 'bingbing' ? '冰冰' : '家希';
-    return '<div class="review-item"><div class="review-item-header"><span class="review-item-user">' + emoji + ' ' + userName + '</span><span class="review-item-time">' + timeStr + '</span></div>' +
-      (r.comment ? '<div style="color:#555">' + r.comment.replace(/</g,'&lt;') + '</div>' : '') + '</div>';
-  }).join('');
-}
-
-function submitReview(rating) {
-  currentReviewRating = rating;
-  document.getElementById('review-good-btn').classList.toggle('active', rating === 'good');
-  document.getElementById('review-bad-btn').classList.toggle('active', rating === 'bad');
-  const comment = document.getElementById('review-input').value.trim();
-  DB.insert('reviews', {
-    dish_key: currentDishKey,
-    rating: rating,
-    comment: comment || null,
-    time: Date.now()
-  }).then(() => {
-    loadReviews(currentDishKey);
-    document.getElementById('review-input').value = '';
-  });
-  const dish = dishData[currentDishKey];
-  const emoji = rating === 'good' ? '👍' : '👎';
-  sendNotification(emoji + ' ' + dish.name + ' 评价：' + (comment || (rating === 'good' ? '好评' : '吐槽')));
-  trackInteraction('review');
-}
-
-// 加载心愿菜品已合并到 dishes 表，不再需要单独加载
 </script>
 </body>
 </html>
