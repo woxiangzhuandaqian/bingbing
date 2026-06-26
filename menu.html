@@ -184,52 +184,7 @@ body { overflow-y: auto; }
     </div>
   </div>
 
-  <div class="section-label">🥤 饮品</div>
-
-  <div class="menu-item" data-key="yuanye" onclick="showDetail('yuanye')">
-    <span class="menu-item-emoji">🍵</span>
-    <div class="menu-item-info"><div class="menu-item-name">原叶糯米酸奶</div><div class="menu-item-desc">茶香配糯叽叽</div></div>
-    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('yuanye',this)">+</div>
-  </div>
-
-  <div class="menu-item" data-key="mangguo" onclick="showDetail('mangguo')">
-    <span class="menu-item-emoji">🥭</span>
-    <div class="menu-item-info"><div class="menu-item-name">芒果糯米酸奶</div><div class="menu-item-desc">热带风味拉满</div></div>
-    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('mangguo',this)">+</div>
-  </div>
-
-  <div class="menu-item" data-key="huanggua" onclick="showDetail('huanggua')">
-    <span class="menu-item-emoji">🥒</span>
-    <div class="menu-item-info"><div class="menu-item-name">黄瓜冰浆</div><div class="menu-item-desc">升级版·加了小布丁</div></div>
-    <span class="menu-item-tag">今日特供</span>
-    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('huanggua',this)">+</div>
-  </div>
-
-  <div class="section-label">🍳 菜品</div>
-
-  <div class="menu-item" data-key="kele" onclick="showDetail('kele')">
-    <span class="menu-item-emoji">🍗</span>
-    <div class="menu-item-info"><div class="menu-item-name">可乐鸡翅</div><div class="menu-item-desc">甜口小炸弹</div></div>
-    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('kele',this)">+</div>
-  </div>
-
-  <div class="menu-item" data-key="tudou" onclick="showDetail('tudou')">
-    <span class="menu-item-emoji">🥔</span>
-    <div class="menu-item-info"><div class="menu-item-name">酸辣土豆丝</div><div class="menu-item-desc">脆脆的下饭神器</div></div>
-    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('tudou',this)">+</div>
-  </div>
-
-  <div class="menu-item" data-key="fanqie" onclick="showDetail('fanqie')">
-    <span class="menu-item-emoji">🍅</span>
-    <div class="menu-item-info"><div class="menu-item-name">西红柿炒鸡蛋</div><div class="menu-item-desc">经典永不过时</div></div>
-    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('fanqie',this)">+</div>
-  </div>
-
-  <div class="menu-item" data-key="jizhen" onclick="showDetail('jizhen')">
-    <span class="menu-item-emoji">🫚</span>
-    <div class="menu-item-info"><div class="menu-item-name">辣炒鸡胗</div><div class="menu-item-desc">嘎嘣脆有嚼劲</div></div>
-    <div class="menu-item-add" onclick="event.stopPropagation();addFromMenu('jizhen',this)">+</div>
-  </div>
+  <div id="menu-list"></div>
 
   <div class="menu-footer">菜单持续更新中，敬请期待~</div>
 </div>
@@ -336,7 +291,7 @@ body { overflow-y: auto; }
 
 <script src="tab-bar.js"></script>
 
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 <script src="supabase.js"></script>
 <script>
 showIdentityPicker();
@@ -346,8 +301,40 @@ let cart = Store.get('cart', []);
 let currentDishKey = '';
 let lastRandomKey = '';
 
-syncAddButtons();
-updateCartBadge();
+async function initMenu() {
+  await loadDishData();
+  renderMenuList();
+  syncAddButtons();
+  updateCartBadge();
+}
+
+function renderMenuList() {
+  const list = document.getElementById('menu-list');
+  const categories = {};
+  Object.entries(dishData).forEach(([key, dish]) => {
+    const cat = dish.category || '菜品';
+    if (!categories[cat]) categories[cat] = [];
+    categories[cat].push({ key, ...dish });
+  });
+  const catEmoji = { '饮品': '🥤', '菜品': '🍳' };
+  let html = '';
+  Object.entries(categories).forEach(([cat, dishes]) => {
+    html += '<div class="section-label">' + (catEmoji[cat] || '🍽️') + ' ' + cat + '</div>';
+    dishes.forEach(d => {
+      let tags = '';
+      if (d.fromWish) tags += ' <span class="menu-item-tag" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);color:#c2185b;margin-left:6px;vertical-align:middle">心愿</span>';
+      if (isNewDish(d.key)) tags += ' <span class="menu-item-new" style="margin-left:6px;vertical-align:middle">NEW</span>';
+      html += '<div class="menu-item" data-key="' + d.key + '" onclick="showDetail(\'' + d.key + '\')">' +
+        '<span class="menu-item-emoji">' + d.emoji + '</span>' +
+        '<div class="menu-item-info"><div class="menu-item-name">' + d.name + tags + '</div><div class="menu-item-desc">' + d.subtitle + '</div></div>' +
+        '<div class="menu-item-add" onclick="event.stopPropagation();addFromMenu(\'' + d.key + '\',this)">+</div>' +
+      '</div>';
+    });
+  });
+  list.innerHTML = html;
+}
+
+initMenu();
 
 function togglePanel() {
   document.getElementById('fab-panel').classList.toggle('show');
@@ -425,12 +412,6 @@ function syncAddButtons() {
     const key = item.dataset.key;
     const btn = item.querySelector('.menu-item-add');
     if (cart.includes(key)) { btn.textContent = '✓'; btn.classList.add('added'); }
-    if (isNewDish(key)) {
-      const newTag = document.createElement('span');
-      newTag.className = 'menu-item-new';
-      newTag.textContent = 'NEW';
-      item.querySelector('.menu-item-info').appendChild(newTag);
-    }
   });
 }
 
@@ -522,6 +503,7 @@ function randomPick() {
   document.getElementById('random-name').textContent = dish.name;
   document.getElementById('random-desc').textContent = dish.taste.slice(0, 30) + '...';
   document.getElementById('random-overlay').classList.add('show');
+  trackInteraction('random');
   checkAchievements('random');
 }
 
@@ -576,6 +558,8 @@ function submitReview(rating) {
   sendNotification(emoji + ' ' + dish.name + ' 评价：' + (comment || (rating === 'good' ? '好评' : '吐槽')));
   trackInteraction('review');
 }
+
+// 加载心愿菜品已合并到 dishes 表，不再需要单独加载
 </script>
 </body>
 </html>

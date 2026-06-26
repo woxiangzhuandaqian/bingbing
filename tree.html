@@ -4,271 +4,227 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧊</text></svg>">
-<title>我们的树 - 🧊🧊的专属小馆</title>
+<title>我们的猫 - 🧊🧊的专属小馆</title>
 <link rel="stylesheet" href="style.css">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  min-height: 100vh; display: flex; flex-direction: column;
-  background: linear-gradient(180deg, #1a237e 0%, #283593 20%, #3949ab 40%, #5c6bc0 60%, #7986cb 80%, #9fa8da 100%);
-  overflow: hidden; position: relative;
+body { min-height: 100vh; display: flex; flex-direction: column; background: #fefefe; }
+
+.info { text-align: center; padding: 28px 20px 10px; }
+.info-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 6px; }
+.info-stage { font-size: 13px; color: #999; margin-bottom: 4px; }
+.info-count { font-size: 11px; color: #bbb; }
+.info-progress { width: 50%; max-width: 180px; height: 4px; background: #eee; border-radius: 2px; margin: 10px auto 0; overflow: hidden; }
+.info-progress-bar { height: 100%; border-radius: 2px; transition: width 1.5s ease; background: linear-gradient(90deg, #ffab91, #f48fb1, #ce93d8); }
+
+.pet-area {
+  flex: 1; position: relative; overflow: hidden;
+  border-bottom: 3px solid #eee;
+  margin-bottom: 70px;
 }
 
-/* 星空 */
-.stars { position: fixed; width: 100%; height: 100%; pointer-events: none; }
-.star {
-  position: absolute; width: 3px; height: 3px; background: white;
-  border-radius: 50%; animation: twinkle 3s ease-in-out infinite;
-}
-@keyframes twinkle { 0%,100%{opacity:0.3;} 50%{opacity:1;} }
-
-/* 萤火虫 */
-.firefly {
-  position: absolute; width: 5px; height: 5px; border-radius: 50%;
-  background: #fff9c4; box-shadow: 0 0 6px 2px rgba(255,249,196,0.6);
-  animation: fly 8s ease-in-out infinite;
-  opacity: 0;
-}
-@keyframes fly {
-  0% { opacity: 0; transform: translate(0, 0); }
-  20% { opacity: 0.8; }
-  50% { opacity: 1; transform: translate(30px, -40px); }
-  80% { opacity: 0.6; transform: translate(-20px, -80px); }
-  100% { opacity: 0; transform: translate(10px, -120px); }
+.pet {
+  position: absolute; bottom: 0; left: 50%;
+  width: 80px; height: 80px;
+  cursor: pointer; transition: none;
+  image-rendering: pixelated;
 }
 
-/* 信息区 */
-.tree-info {
-  position: relative; z-index: 10; text-align: center;
-  padding: 30px 20px 10px;
-}
-.tree-title {
-  font-size: 20px; font-weight: 700; color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3); margin-bottom: 8px;
-}
-.tree-subtitle { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 4px; }
-.tree-count { font-size: 12px; color: rgba(255,255,255,0.5); }
-
-.tree-progress {
-  width: 50%; max-width: 180px; height: 5px;
-  background: rgba(255,255,255,0.15); border-radius: 3px;
-  margin: 12px auto 0; overflow: hidden;
-}
-.tree-progress-bar {
-  height: 100%; border-radius: 3px; transition: width 1.5s ease;
-  background: linear-gradient(90deg, #a5d6a7, #66bb6a, #fff59d);
+.pet img {
+  width: 100%; height: 100%; object-fit: contain;
+  pointer-events: none;
 }
 
-/* 场景 */
-.scene {
-  flex: 1; position: relative; display: flex;
-  align-items: flex-end; justify-content: center;
-  padding-bottom: 130px;
+.pet-bubble {
+  position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
+  background: white; border: 2px solid #eee; border-radius: 12px;
+  padding: 4px 10px; font-size: 13px; white-space: nowrap;
+  opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.pet-bubble.show { opacity: 1; }
+.pet-bubble::after {
+  content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+  border-left: 6px solid transparent; border-right: 6px solid transparent;
+  border-top: 6px solid white;
 }
 
-/* 山丘地面 */
-.hill {
-  position: absolute; bottom: 60px; left: -10%; width: 120%; height: 180px;
-  background: radial-gradient(ellipse at 50% 100%, #2e7d32 0%, #1b5e20 60%, transparent 70%);
-  border-radius: 50% 50% 0 0;
+.actions {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 12px; z-index: 10;
 }
-.hill::before {
-  content: ''; position: absolute; bottom: -20px; left: -5%; width: 110%; height: 60px;
-  background: #1b5e20; border-radius: 0 0 0 0;
+.action-btn {
+  width: 44px; height: 44px; border-radius: 50%; border: none;
+  background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 20px; cursor: pointer; transition: all 0.2s;
 }
+.action-btn:active { transform: scale(0.85); }
 
-/* 树 */
-.tree-wrap {
-  position: relative; z-index: 5; display: flex; flex-direction: column;
-  align-items: center; animation: treeAppear 1s ease;
+.test-panel {
+  position: fixed; top: 90px; left: 10px; z-index: 999;
+  background: rgba(0,0,0,0.7); border-radius: 12px; padding: 8px;
+  display: flex; flex-wrap: wrap; gap: 5px; max-width: 160px;
 }
-@keyframes treeAppear { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-
-/* 树干 - SVG风格 */
-.trunk-svg {
-  width: 20px; border-radius: 5px;
-  background: linear-gradient(90deg, #4e342e, #6d4c41, #5d4037, #4e342e);
-  position: relative;
-}
-.trunk-svg::before {
-  content: ''; position: absolute; top: 30%; left: -8px;
-  width: 10px; height: 3px; background: #5d4037; border-radius: 2px;
-  transform: rotate(-30deg);
-}
-.trunk-svg::after {
-  content: ''; position: absolute; top: 50%; right: -6px;
-  width: 8px; height: 3px; background: #5d4037; border-radius: 2px;
-  transform: rotate(25deg);
-}
-
-/* 树冠 */
-.crown {
-  border-radius: 50% 50% 45% 45%;
-  position: relative; margin-bottom: -10px;
-  animation: crownSway 6s ease-in-out infinite;
-}
-@keyframes crownSway { 0%,100%{transform:rotate(-1deg);} 50%{transform:rotate(1deg);} }
-
-.crown-main {
-  width: 100%; height: 100%; border-radius: inherit;
-  background: radial-gradient(ellipse at 35% 35%, #81c784, #4caf50 50%, #2e7d32 100%);
-  box-shadow: inset -8px -8px 20px rgba(0,0,0,0.15), 0 8px 25px rgba(0,0,0,0.2);
-}
-
-/* 叶子光斑 */
-.leaf-spot {
-  position: absolute; border-radius: 50%;
-  background: radial-gradient(circle, rgba(165,214,167,0.6), transparent);
-}
-
-/* 花 */
-.bloom {
-  position: absolute; font-size: 12px;
-  animation: bloomFloat 3s ease-in-out infinite;
-}
-@keyframes bloomFloat { 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-3px) scale(1.1);} }
-
-/* 种子 */
-.seed-stage {
-  width: 60px; height: 60px; border-radius: 50%;
-  background: radial-gradient(circle at 40% 40%, #8d6e63, #5d4037);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 2px 2px 5px rgba(255,255,255,0.1);
-  display: flex; align-items: center; justify-content: center;
-  animation: seedBounce 2s ease-in-out infinite;
-}
-@keyframes seedBounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
-
-/* 发芽 */
-.sprout-stage { display: flex; flex-direction: column; align-items: center; }
-.sprout-leaves { display: flex; gap: 0; margin-bottom: -4px; }
-.sprout-leaf {
-  width: 18px; height: 28px; border-radius: 50% 50% 50% 0;
-  background: linear-gradient(135deg, #a5d6a7, #66bb6a);
-  box-shadow: inset -2px -2px 4px rgba(0,0,0,0.1);
-  animation: leafGrow 3s ease-in-out infinite;
-}
-.sprout-leaf:first-child { transform: rotate(-30deg); }
-.sprout-leaf:last-child { transform: rotate(30deg) scaleX(-1); animation-delay: 0.5s; }
-@keyframes leafGrow { 0%,100%{transform-origin:bottom center;} 50%{transform:rotate(-25deg) scale(1.05);} }
-.sprout-stem {
-  width: 5px; height: 40px; border-radius: 3px;
-  background: linear-gradient(180deg, #66bb6a, #4caf50, #388e3c);
-}
-
-/* 底部tab空间 */
-.bottom-space { position: absolute; bottom: 0; left: 0; width: 100%; height: 70px; background: #1b5e20; }
+.test-btn { padding: 4px 8px; border: none; border-radius: 6px; background: rgba(255,255,255,0.15); color: white; font-size: 10px; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<div class="stars" id="stars"></div>
-
-<div class="tree-info">
-  <div class="tree-title">🌙 我们的爱情树</div>
-  <div class="tree-subtitle" id="stage-name">加载中...</div>
-  <div class="tree-count" id="tree-count"></div>
-  <div class="tree-progress"><div class="tree-progress-bar" id="progress-bar"></div></div>
+<div class="test-panel">
+  <button class="test-btn" onclick="forceState('idle')">发呆</button>
+  <button class="test-btn" onclick="forceState('walk_left')">走左</button>
+  <button class="test-btn" onclick="forceState('walk_right')">走右</button>
+  <button class="test-btn" onclick="forceState('idle_to_sleep')">困了</button>
+  <button class="test-btn" onclick="forceState('sleep')">睡觉</button>
 </div>
 
-<div class="scene">
-  <div class="tree-wrap" id="tree-container"></div>
-  <div class="hill"></div>
+<div class="info">
+  <div class="info-title">🐱 我们的猫</div>
+  <div class="info-stage" id="stage-name"></div>
+  <div class="info-count" id="tree-count"></div>
+  <div class="info-progress"><div class="info-progress-bar" id="progress-bar"></div></div>
 </div>
 
-<div class="bottom-space"></div>
+<div class="pet-area" id="pet-area">
+  <div class="pet" id="pet" onclick="onPetClick()">
+    <div class="pet-bubble" id="pet-bubble"></div>
+    <img id="pet-img" src="pet/idle.gif">
+  </div>
+  <div class="actions">
+    <button class="action-btn" onclick="petAction('pat')">🤚</button>
+    <button class="action-btn" onclick="petAction('feed')">🐟</button>
+    <button class="action-btn" onclick="petAction('love')">❤️</button>
+  </div>
+</div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=8"></script>
 <script src="supabase.js"></script>
 <script>
-// 星空
-const starsEl = document.getElementById('stars');
-for (let i = 0; i < 60; i++) {
-  const s = document.createElement('div');
-  s.className = 'star';
-  s.style.left = Math.random() * 100 + '%';
-  s.style.top = Math.random() * 60 + '%';
-  s.style.animationDelay = Math.random() * 3 + 's';
-  s.style.width = s.style.height = (Math.random() * 2 + 1) + 'px';
-  starsEl.appendChild(s);
+const pet = document.getElementById('pet');
+const petImg = document.getElementById('pet-img');
+const petArea = document.getElementById('pet-area');
+
+let currentState = 'idle';
+let posX = 50;
+let moveSpeed = 1.5;
+let stateTimer = null;
+let moveInterval = null;
+
+const GIFS = {
+  idle: 'pet/idle.gif',
+  walk_left: 'pet/walk-left.gif',
+  walk_right: 'pet/walk-right.gif',
+  idle_to_sleep: 'pet/idle-to-sleep.gif',
+  sleep: 'pet/sleep.gif',
+  sleep_to_idle: 'pet/sleep-to-idle.gif',
+};
+
+const STATE_DURATION = {
+  idle: [3000, 6000],
+  walk_left: [3000, 6000],
+  walk_right: [3000, 6000],
+  idle_to_sleep: [1600, 1600],
+  sleep: [5000, 10000],
+  sleep_to_idle: [1600, 1600],
+};
+
+function setState(state) {
+  currentState = state;
+  petImg.src = GIFS[state];
+  clearInterval(moveInterval);
+
+  if (state === 'walk_left' || state === 'walk_right') {
+    moveInterval = setInterval(() => {
+      if (state === 'walk_left') posX -= moveSpeed;
+      else posX += moveSpeed;
+      posX = Math.max(5, Math.min(posX, 95));
+      pet.style.left = posX + '%';
+    }, 30);
+  }
+
+  const [minTime, maxTime] = STATE_DURATION[state];
+  const duration = minTime + Math.random() * (maxTime - minTime);
+
+  clearTimeout(stateTimer);
+  stateTimer = setTimeout(() => {
+    const next = getNextState(state);
+    setState(next);
+  }, duration);
 }
 
-// 萤火虫
-for (let i = 0; i < 8; i++) {
-  const f = document.createElement('div');
-  f.className = 'firefly';
-  f.style.left = (20 + Math.random() * 60) + '%';
-  f.style.bottom = (100 + Math.random() * 150) + 'px';
-  f.style.animationDelay = Math.random() * 8 + 's';
-  f.style.animationDuration = (6 + Math.random() * 4) + 's';
-  document.body.appendChild(f);
+function getNextState(state) {
+  if (state === 'idle') return randomChoice(['idle', 'idle', 'walk_left', 'walk_right', 'idle_to_sleep']);
+  if (state === 'idle_to_sleep') return 'sleep';
+  if (state === 'sleep') return randomChoice(['sleep', 'sleep_to_idle']);
+  if (state === 'sleep_to_idle') return 'idle';
+  if (state === 'walk_left') return randomChoice(['idle', 'walk_left', 'walk_right']);
+  if (state === 'walk_right') return randomChoice(['idle', 'walk_left', 'walk_right']);
+  return 'idle';
 }
 
+function randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function forceState(state) { setState(state); }
+
+function showBubble(text) {
+  const bubble = document.getElementById('pet-bubble');
+  bubble.textContent = text;
+  bubble.classList.add('show');
+  setTimeout(() => bubble.classList.remove('show'), 2000);
+}
+
+function onPetClick() {
+  const msgs = ['喵~', '蹭蹭', '咕噜咕噜', '嗯?', '摸摸~', '❤️'];
+  showBubble(randomChoice(msgs));
+  setState('idle');
+}
+
+function petAction(type) {
+  if (type === 'pat') {
+    showBubble(randomChoice(['呼噜呼噜~', '好舒服~', '再摸摸', '喵~']));
+  } else if (type === 'feed') {
+    showBubble(randomChoice(['好吃!', '还要!', '😋', '鱼鱼!']));
+  } else if (type === 'love') {
+    showBubble(randomChoice(['❤️', '爱你~', '贴贴', '💕']));
+  }
+  setState('idle');
+  if (typeof trackInteraction !== 'undefined') trackInteraction('reply');
+}
+
+// 初始化位置
+posX = 30 + Math.random() * 40;
+pet.style.left = posX + '%';
+setState('idle');
+
+// 加载成长值
 const STAGES = [
-  { name: '种子', min: 0, max: 5 },
-  { name: '发芽', min: 6, max: 15 },
-  { name: '幼苗', min: 16, max: 30 },
-  { name: '小树', min: 31, max: 60 },
-  { name: '大树', min: 61, max: 100 },
-  { name: '开花', min: 101, max: 150 },
-  { name: '结果', min: 151, max: 99999 },
+  { name: '猫蛋', min: 0, max: 5 },
+  { name: '小奶猫', min: 6, max: 15 },
+  { name: '幼猫', min: 16, max: 30 },
+  { name: '小猫', min: 31, max: 60 },
+  { name: '大猫', min: 61, max: 100 },
+  { name: '猫王', min: 101, max: 150 },
+  { name: '神猫', min: 151, max: 99999 },
 ];
 
-function getStage(count) {
-  for (let i = STAGES.length - 1; i >= 0; i--) {
-    if (count >= STAGES[i].min) return { ...STAGES[i], index: i };
-  }
-  return { ...STAGES[0], index: 0 };
-}
-
-function renderTree(count) {
-  const stage = getStage(count);
-  const container = document.getElementById('tree-container');
-  const progress = (count - stage.min) / (stage.max - stage.min + 1);
-
-  document.getElementById('stage-name').textContent = '第' + (stage.index + 1) + '阶段 · ' + stage.name;
-  document.getElementById('tree-count').textContent = '成长值 ' + count + ' · 下一阶段还需 ' + (stage.max - count + 1);
-  document.getElementById('progress-bar').style.width = Math.min(progress * 100, 100) + '%';
-
-  let html = '';
-
-  if (stage.index === 0) {
-    html = '<div class="seed-stage">🌰</div>';
-  } else if (stage.index === 1) {
-    html = '<div class="sprout-stage"><div class="sprout-leaves"><div class="sprout-leaf"></div><div class="sprout-leaf"></div></div><div class="sprout-stem"></div></div>';
-  } else if (stage.index === 2) {
-    html = '<div class="crown" style="width:70px;height:65px"><div class="crown-main"></div><div class="leaf-spot" style="width:20px;height:20px;top:15%;left:20%"></div></div>' +
-           '<div class="trunk-svg" style="height:50px"></div>';
-  } else if (stage.index === 3) {
-    html = '<div class="crown" style="width:110px;height:100px"><div class="crown-main"></div><div class="leaf-spot" style="width:30px;height:30px;top:20%;left:15%"></div><div class="leaf-spot" style="width:20px;height:20px;top:40%;right:20%"></div></div>' +
-           '<div class="trunk-svg" style="height:80px;width:22px"></div>';
-  } else if (stage.index === 4) {
-    html = '<div class="crown" style="width:150px;height:135px"><div class="crown-main"></div><div class="leaf-spot" style="width:40px;height:40px;top:15%;left:15%"></div><div class="leaf-spot" style="width:25px;height:25px;top:45%;right:20%"></div><div class="leaf-spot" style="width:30px;height:30px;top:60%;left:30%"></div></div>' +
-           '<div class="trunk-svg" style="height:100px;width:24px"></div>';
-  } else if (stage.index === 5) {
-    html = '<div class="crown" style="width:160px;height:145px"><div class="crown-main"></div><div class="leaf-spot" style="width:40px;height:40px;top:15%;left:15%"></div><div class="leaf-spot" style="width:25px;height:25px;top:45%;right:20%"></div>' +
-           '<span class="bloom" style="top:15%;left:20%">🌸</span><span class="bloom" style="top:25%;right:18%;animation-delay:0.5s">🌺</span><span class="bloom" style="top:45%;left:30%;animation-delay:1s">🌸</span><span class="bloom" style="top:55%;right:25%;animation-delay:1.5s">🌼</span><span class="bloom" style="top:35%;left:50%;animation-delay:0.8s">🌸</span></div>' +
-           '<div class="trunk-svg" style="height:110px;width:26px"></div>';
-  } else {
-    html = '<div class="crown" style="width:170px;height:155px"><div class="crown-main"></div><div class="leaf-spot" style="width:40px;height:40px;top:15%;left:15%"></div>' +
-           '<span class="bloom" style="top:12%;left:22%">🌸</span><span class="bloom" style="top:20%;right:20%;animation-delay:0.5s">🌺</span><span class="bloom" style="top:50%;left:15%;animation-delay:1s">🌸</span>' +
-           '<span class="bloom" style="bottom:25%;left:25%;font-size:16px;animation-delay:0.3s">🍎</span><span class="bloom" style="bottom:30%;right:20%;font-size:16px;animation-delay:1.2s">🍊</span><span class="bloom" style="bottom:15%;left:45%;font-size:16px;animation-delay:2s">🍑</span></div>' +
-           '<div class="trunk-svg" style="height:120px;width:28px"></div>';
-  }
-
-  container.innerHTML = html;
-}
-
-async function loadTree() {
+async function loadPet() {
   const res = await fetch(SUPABASE_URL + '/rest/v1/interactions?select=points', { headers: supabaseHeaders });
   let count = 0;
   if (res.ok) {
     const data = await res.json();
     count = data.reduce((sum, d) => sum + (d.points || 1), 0);
   }
-  renderTree(count);
+  let idx = 0;
+  for (let i = STAGES.length - 1; i >= 0; i--) {
+    if (count >= STAGES[i].min) { idx = i; break; }
+  }
+  const stage = STAGES[idx];
+  const progress = (count - stage.min) / (stage.max - stage.min + 1);
+  document.getElementById('stage-name').textContent = '第' + (idx + 1) + '阶段 · ' + stage.name;
+  document.getElementById('tree-count').textContent = '成长值 ' + count + ' · 下一阶段还需 ' + Math.max(stage.max - count + 1, 0);
+  document.getElementById('progress-bar').style.width = Math.min(progress * 100, 100) + '%';
 }
-
-loadTree();
+loadPet();
 </script>
 <script src="tab-bar.js"></script>
 </body>

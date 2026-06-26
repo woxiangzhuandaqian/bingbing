@@ -1,64 +1,27 @@
 // ====== 菜品数据 ======
-const dishData = {
-  yuanye: {
-    emoji: '🍵',
-    name: '原叶糯米酸奶',
-    subtitle: '茶底饮品 · 冷饮',
-    tags: ['清爽', '有嚼劲', '茶香'],
-    taste: '淡淡的茶香打底，酸奶顺滑浓郁，糯米粒QQ弹弹的，嚼起来有满足感。清爽不腻，喝完会想再来一杯。',
-    addedAt: '2025-06-23',
-  },
-  mangguo: {
-    emoji: '🥭',
-    name: '芒果糯米酸奶',
-    subtitle: '水果饮品 · 冷饮',
-    tags: ['甜蜜', '热带风', '层次丰富'],
-    taste: '芒果的甜是那种热带阳光的味道，配上酸奶的微酸刚刚好。糯米吸满了果香，每一口都是层次感。甜而不齁，夏天必备。',
-    addedAt: '2025-06-23',
-  },
-  huanggua: {
-    emoji: '🥒',
-    name: '黄瓜冰浆',
-    subtitle: '自创特饮 · 冷饮',
-    tags: ['清香', '冰爽', '小甜蜜'],
-    taste: '黄瓜的清香，冰沙的口感，小布丁的甜味。三种味道交织在一起，清清爽爽又带点小甜蜜。夏天喝一口整个人都凉下来了。',
-    addedAt: '2025-06-23',
-  },
-  kele: {
-    emoji: '🍗',
-    name: '可乐鸡翅',
-    subtitle: '肉菜 · 甜口',
-    tags: ['甜咸', '嫩滑', '焦糖色'],
-    taste: '外皮微焦带着可乐的焦糖色，咬一口甜咸交融，肉嫩得脱骨。最后收汁裹在表面，亮晶晶的超有食欲。连骨头都想嗦一嗦。',
-    addedAt: '2025-06-23',
-  },
-  tudou: {
-    emoji: '🥔',
-    name: '酸辣土豆丝',
-    subtitle: '素菜 · 酸辣口',
-    tags: ['脆爽', '开胃', '下饭'],
-    taste: '切得细细的，过了冷水所以特别脆。醋的酸、辣椒的辣、花椒的麻，每一口都开胃。米饭杀手级别，不小心会多吃两碗。',
-    addedAt: '2025-06-23',
-  },
-  fanqie: {
-    emoji: '🍅',
-    name: '西红柿炒鸡蛋',
-    subtitle: '家常菜 · 酸甜口',
-    tags: ['经典', '嫩滑', '治愈'],
-    taste: '西红柿炒出沙沙的口感，酸甜的汤汁包裹着嫩滑的鸡蛋。家常味道，吃一口就觉得安心。拌饭绝了，汤汁一滴都不想剩。',
-    addedAt: '2025-06-23',
-  },
-  jizhen: {
-    emoji: '🫚',
-    name: '辣炒鸡胗',
-    subtitle: '硬菜 · 辣口',
-    tags: ['嘎嘣脆', '越嚼越香', '有后劲'],
-    taste: '嘎嘣脆的口感，越嚼越香。辣味是那种慢慢上来的后劲，配上青椒的清香，特别适合当下酒菜或者配饭吃。吃完嘴巴辣辣的很过瘾。',
-    addedAt: '2025-06-23',
-  }
-};
+let dishData = {};
 
-// 判断是否是新品（3天内）
+async function loadDishData() {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/dishes?order=id.asc', { headers: supabaseHeaders });
+  if (!res.ok) return;
+  const dishes = await res.json();
+  dishData = {};
+  dishes.forEach(d => {
+    const key = d.key || ('dish_' + d.id);
+    dishData[key] = {
+      id: d.id,
+      emoji: d.emoji,
+      name: d.name,
+      subtitle: d.subtitle || '',
+      tags: d.tags || [],
+      taste: d.taste || '',
+      category: d.category || '菜品',
+      addedAt: d.added_at,
+      fromWish: d.from_wish || false,
+    };
+  });
+}
+
 function isNewDish(key) {
   const dish = dishData[key];
   if (!dish || !dish.addedAt) return false;
@@ -88,33 +51,30 @@ const ACHIEVEMENTS = [
   { id: 'wishlist_done', emoji: '💫', name: '心愿实现', desc: '第一个心愿菜品上线' },
   { id: 'msg_10', emoji: '📝', name: '留言达人', desc: '留言超过10条' },
   { id: 'random_5', emoji: '🎲', name: '随缘吃货', desc: '使用随机推荐5次' },
+  { id: 'streak_7', emoji: '💪', name: '铁杆吃货', desc: '连续7天点单', phase: 2 },
+  { id: 'order_10', emoji: '🏅', name: '十单元老', desc: '累计点单10次', phase: 2 },
+  { id: 'msg_30', emoji: '💬', name: '话痨本痨', desc: '留言超过30条', phase: 2 },
+  { id: 'wishlist_5', emoji: '🌟', name: '许愿达人', desc: '许了5个愿望', phase: 2 },
+  { id: 'review_10', emoji: '🍽️', name: '美食评论家', desc: '评价10次', phase: 2 },
+  { id: 'all_good', emoji: '⭐', name: '全五星好评', desc: '给所有菜品好评', phase: 2 },
 ];
 
-function getStats() {
-  return Store.get('stats', {
-    orderCount: 0,
-    lastOrderDate: '',
-    consecutiveDays: 0,
-    randomCount: 0,
-  });
+async function getUnlockedAchievements() {
+  if (typeof SUPABASE_URL === 'undefined' || typeof User === 'undefined') return [];
+  const user = User.get();
+  if (!user) return [];
+  const res = await fetch(SUPABASE_URL + '/rest/v1/achievements?user=eq.' + user + '&select=achievement_id', { headers: supabaseHeaders });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return [...new Set(data.map(d => d.achievement_id))];
 }
 
-function saveStats(stats) {
-  Store.set('stats', stats);
-}
-
-function getUnlockedAchievements() {
-  return Store.get('achievements', []);
-}
-
-function unlockAchievement(id) {
-  const unlocked = getUnlockedAchievements();
+async function unlockAchievement(id) {
+  const unlocked = await getUnlockedAchievements();
   if (unlocked.includes(id)) return false;
-  unlocked.push(id);
-  Store.set('achievements', unlocked);
   showAchievementToast(id);
   if (typeof DB !== 'undefined' && typeof User !== 'undefined' && User.get()) {
-    DB.insert('achievements', { achievement_id: id, user: User.get(), unlocked_at: Date.now() });
+    await DB.insert('achievements', { achievement_id: id, user: User.get(), unlocked_at: Date.now() });
   }
   return true;
 }
@@ -129,41 +89,78 @@ function showAchievementToast(id) {
   setTimeout(() => toast.remove(), 3000);
 }
 
-function checkAchievements(action) {
-  const stats = getStats();
-  const unlocked = getUnlockedAchievements();
+async function checkAchievements(action) {
+  const unlocked = await getUnlockedAchievements();
 
   if (action === 'order') {
-    if (!unlocked.includes('first_order')) unlockAchievement('first_order');
-    const today = new Date().toDateString();
-    if (stats.lastOrderDate !== today) {
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      stats.consecutiveDays = (stats.lastOrderDate === yesterday) ? stats.consecutiveDays + 1 : 1;
-      stats.lastOrderDate = today;
-      stats.orderCount++;
-      saveStats(stats);
+    if (!unlocked.includes('first_order')) await unlockAchievement('first_order');
+    if (!unlocked.includes('streak_3')) {
+      const streak = await getOrderStreak();
+      if (streak >= 3) await unlockAchievement('streak_3');
     }
-    if (stats.consecutiveDays >= 3 && !unlocked.includes('streak_3')) unlockAchievement('streak_3');
   }
 
   if (action === 'select_all') {
-    if (!unlocked.includes('select_all')) unlockAchievement('select_all');
+    if (!unlocked.includes('select_all')) await unlockAchievement('select_all');
   }
 
   if (action === 'random') {
-    stats.randomCount = (stats.randomCount || 0) + 1;
-    saveStats(stats);
-    if (stats.randomCount >= 5 && !unlocked.includes('random_5')) unlockAchievement('random_5');
+    if (!unlocked.includes('random_5')) {
+      const count = await getInteractionCount('random');
+      if (count >= 5) await unlockAchievement('random_5');
+    }
   }
 
   if (action === 'message') {
-    const msgs = Store.get('messages', []);
-    if (msgs.length >= 10 && !unlocked.includes('msg_10')) unlockAchievement('msg_10');
+    if (!unlocked.includes('msg_10')) {
+      const count = await getMessageCount();
+      if (count >= 10) await unlockAchievement('msg_10');
+    }
   }
 
   if (action === 'wishlist_done') {
-    if (!unlocked.includes('wishlist_done')) unlockAchievement('wishlist_done');
+    if (!unlocked.includes('wishlist_done')) await unlockAchievement('wishlist_done');
   }
+}
+
+async function getOrderStreak() {
+  if (typeof SUPABASE_URL === 'undefined') return 0;
+  const user = User.get();
+  if (!user) return 0;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/orders?user=eq.' + user + '&order=eat_date.desc', { headers: supabaseHeaders });
+  if (!res.ok) return 0;
+  const orders = await res.json();
+  if (orders.length === 0) return 0;
+  const dates = [...new Set(orders.map(o => o.eat_date))].sort().reverse();
+  let streak = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const prev = new Date(dates[i - 1]);
+    const curr = new Date(dates[i]);
+    const diff = (prev - curr) / (24 * 60 * 60 * 1000);
+    if (diff === 1) streak++;
+    else break;
+  }
+  return streak;
+}
+
+async function getMessageCount() {
+  if (typeof SUPABASE_URL === 'undefined') return 0;
+  const user = User.get();
+  if (!user) return 0;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/messages?user=eq.' + user + '&select=id', { headers: supabaseHeaders });
+  if (!res.ok) return 0;
+  const msgs = await res.json();
+  return msgs.length;
+}
+
+async function getInteractionCount(action) {
+  if (typeof SUPABASE_URL === 'undefined') return 0;
+  const user = User.get();
+  if (!user) return 0;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/interactions?user=eq.' + user + '&action=eq.' + action + '&select=id', { headers: supabaseHeaders });
+  if (!res.ok) return 0;
+  const data = await res.json();
+  return data.length;
 }
 
 // ====== 通知推送 ======

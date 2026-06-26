@@ -69,10 +69,8 @@ async function ensureUser() {
 
 const DB = {
   async getAll(table, order) {
-    const user = User.getViewUser();
     const orderParam = order || 'time.desc';
     let url = SUPABASE_URL + '/rest/v1/' + table + '?order=' + orderParam;
-    if (user) url += '&user=eq.' + user;
     const res = await fetch(url, { headers: supabaseHeaders });
     if (!res.ok) return [];
     return res.json();

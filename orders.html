@@ -50,6 +50,33 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 }
 .orders-empty-emoji { font-size: 48px; margin-bottom: 12px; }
 .orders-empty-text { font-size: 14px; line-height: 1.8; }
+
+.order-review {
+  margin-top: 12px; border-top: 1px dashed #eee; padding-top: 10px;
+}
+.order-review-label { font-size: 12px; color: #aaa; margin-bottom: 6px; }
+.order-review-list { margin-bottom: 8px; }
+.order-review-item {
+  font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 4px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.order-review-content { flex: 1; }
+.order-review-time { font-size: 10px; color: #ccc; flex-shrink: 0; margin-left: 8px; }
+.order-review-input {
+  display: flex; gap: 6px; align-items: center;
+}
+.order-review-input input {
+  flex: 1; padding: 6px 10px; border: 1px solid #eee; border-radius: 12px;
+  font-size: 12px; outline: none;
+}
+.order-review-input input:focus { border-color: var(--green); }
+.order-review-btn {
+  padding: 5px 10px; border: none; border-radius: 10px;
+  font-size: 13px; cursor: pointer; transition: all 0.2s;
+}
+.order-review-btn:active { transform: scale(0.9); }
+.order-review-btn.good { background: #e8f5e9; color: #2e7d32; }
+.order-review-btn.bad { background: #fce4ec; color: #c62828; }
 </style>
 </head>
 <body>
@@ -60,35 +87,78 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 
 <div class="orders-list" id="orders-list"></div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=8"></script>
 <script src="supabase.js"></script>
 <script>
+let allOrders = [];
+let allOrderReplies = [];
+
 async function loadOrders() {
-  const list = await DB.getAll('orders', 'time.desc');
+  allOrders = await DB.getAll('orders', 'time.desc');
+  const res = await fetch(SUPABASE_URL + '/rest/v1/replies?target_table=eq.orders&order=time.asc', { headers: supabaseHeaders });
+  allOrderReplies = res.ok ? await res.json() : [];
+  renderOrders();
+}
+
+function renderOrders() {
   const container = document.getElementById('orders-list');
-  if (list.length === 0) {
+  if (allOrders.length === 0) {
     container.innerHTML = '<div class="orders-empty"><div class="orders-empty-emoji">📋</div><div class="orders-empty-text">还没有点单记录~<br>去菜单页点几道菜吧</div></div>';
     return;
   }
-  container.innerHTML = list.map(order => {
+  container.innerHTML = allOrders.map((order, idx) => {
     const d = new Date(order.time);
     const timeStr = (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
     const eatDate = order.eat_date;
     const ed = new Date(eatDate);
     const eatLabel = (ed.getMonth()+1) + '月' + ed.getDate() + '日';
+    const who = order.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
+    const replies = allOrderReplies.filter(r => r.target_id === order.id);
+    const repliesHtml = replies.map(r => {
+      const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
+      const t = new Date(r.time);
+      const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+      return '<div class="order-review-item"><span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
+    }).join('');
     return '<div class="order-card">' +
       '<div class="order-card-header">' +
         '<span class="order-card-date">🍽️ ' + eatLabel + ' 吃</span>' +
-        '<span class="order-card-time">下单于 ' + timeStr + '</span>' +
+        '<span class="order-card-time">' + who + ' · ' + timeStr + '</span>' +
       '</div>' +
       '<div class="order-card-items">' +
         order.items.map((item, i) => '<span class="order-card-item order-tag-' + (i % 7) + '">' + item + '</span>').join('') +
+      '</div>' +
+      '<div class="order-review">' +
+        '<div class="order-review-label">顾客评价</div>' +
+        '<div class="order-review-list">' + (repliesHtml || '<span style="color:#ccc;font-size:11px">暂无评价~</span>') + '</div>' +
+        '<div class="order-review-input">' +
+          '<button class="order-review-btn good" onclick="submitOrderReview(' + idx + ',\'👍\')">👍</button>' +
+          '<button class="order-review-btn bad" onclick="submitOrderReview(' + idx + ',\'👎\')">👎</button>' +
+          '<input id="order-review-' + idx + '" placeholder="说两句~" maxlength="50" onkeydown="if(event.key===\'Enter\')submitOrderReview(' + idx + ')">' +
+          '<button class="order-review-btn" style="background:#66bb6a;color:white" onclick="submitOrderReview(' + idx + ')">➤</button>' +
+        '</div>' +
       '</div>' +
     '</div>';
   }).join('');
 }
 
-loadOrders();
+async function submitOrderReview(idx, emoji) {
+  const input = document.getElementById('order-review-' + idx);
+  const text = input.value.trim();
+  const reviewText = emoji ? (emoji + ' ' + (text || (emoji === '👍' ? '好评' : '差评'))) : text;
+  if (!reviewText) return;
+  const user = User.get();
+  if (!user) { await showIdentityPicker(); }
+  input.value = '';
+  await fetch(SUPABASE_URL + '/rest/v1/replies', {
+    method: 'POST',
+    headers: supabaseHeaders,
+    body: JSON.stringify({ target_table: 'orders', target_id: allOrders[idx].id, text: reviewText, user: User.get(), time: Date.now() })
+  });
+  loadOrders();
+}
+
+showIdentityPicker().then(() => loadOrders());
 </script>
 <script src="tab-bar.js"></script>
 </body>

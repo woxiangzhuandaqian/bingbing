@@ -248,14 +248,11 @@ function showWishDetail(i) {
   document.getElementById('wish-detail').classList.add('show');
 }
 
-const WS_URL = 'https://ovjlremcavbqkcnejvit.supabase.co';
-const WS_KEY = 'sb_publishable_jckCjiypg2K_1YFRam5bDw_3qv4ESS8';
-
 async function loadWishReplies(wishId) {
   const el = document.getElementById('wd-replies');
   el.innerHTML = '';
-  const res = await fetch(WS_URL + '/rest/v1/replies?target_table=eq.wishlist&target_id=eq.' + wishId + '&order=time.asc', {
-    headers: { 'apikey': WS_KEY, 'Authorization': 'Bearer ' + WS_KEY }
+  const res = await fetch(SUPABASE_URL + '/rest/v1/replies?target_table=eq.wishlist&target_id=eq.' + wishId + '&order=time.asc', {
+    headers: supabaseHeaders
   });
   const replies = res.ok ? await res.json() : [];
   if (replies.length === 0) { el.innerHTML = '<div style="text-align:center;color:#ccc;font-size:11px">还没有回复~</div>'; return; }
@@ -273,9 +270,9 @@ async function submitWishReply() {
   if (!user) { await showIdentityPicker(); }
   const wishId = wishlist[currentWishIndex].id;
   input.value = '';
-  await fetch(WS_URL + '/rest/v1/replies', {
+  await fetch(SUPABASE_URL + '/rest/v1/replies', {
     method: 'POST',
-    headers: { 'apikey': WS_KEY, 'Authorization': 'Bearer ' + WS_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    headers: supabaseHeaders,
     body: JSON.stringify({ target_table: 'wishlist', target_id: wishId, text: text, user: User.get(), time: Date.now() })
   });
   trackInteraction('reply');
@@ -292,7 +289,23 @@ async function markWishDone() {
   document.getElementById('wd-status').className = 'wish-detail-status done';
   document.getElementById('wd-done-btn').classList.add('hidden');
   renderWishlist();
-  sendNotification('🌟 心愿实现啦：' + item.text);
+  // 自动加到菜单
+  await fetch(SUPABASE_URL + '/rest/v1/dishes', {
+    method: 'POST',
+    headers: supabaseHeaders,
+    body: JSON.stringify({
+      key: 'wish_' + item.id,
+      emoji: '✨',
+      name: item.text,
+      subtitle: '来自心愿',
+      tags: ['心愿实现'],
+      taste: '',
+      category: '菜品',
+      added_at: new Date().toISOString().split('T')[0],
+      from_wish: true
+    })
+  });
+  sendNotification('🌟 心愿实现啦：' + item.text + '（已加入菜单）');
   trackInteraction('wish_done');
   if (typeof checkAchievements !== 'undefined') checkAchievements('wishlist_done');
 }

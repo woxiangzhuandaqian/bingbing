@@ -49,7 +49,7 @@
 <body>
 
 <div class="page-header">
-  <div class="page-header-title">我的成就</div>
+  <div class="page-header-title" id="page-title">我的成就</div>
 </div>
 
 <div class="achievements-body">
@@ -60,38 +60,56 @@
   <div id="achievement-list"></div>
 </div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=8"></script>
 <script src="supabase.js"></script>
 <script>
-const ALL_ACHIEVEMENTS = [
-  { id: 'first_order', emoji: '🎯', name: '首次点单', desc: '完成第一次点单' },
-  { id: 'streak_3', emoji: '🔥', name: '连续点单', desc: '连续3天点单' },
-  { id: 'select_all', emoji: '👑', name: '全选达人', desc: '一次全选所有菜品' },
-  { id: 'wishlist_done', emoji: '💫', name: '心愿实现', desc: '第一个心愿菜品上线' },
-  { id: 'msg_10', emoji: '📝', name: '留言达人', desc: '留言超过10条' },
-  { id: 'random_5', emoji: '🎲', name: '随缘吃货', desc: '使用随机推荐5次' },
-  // 第二阶段
-  { id: 'streak_7', emoji: '💪', name: '铁杆吃货', desc: '连续7天点单', phase: 2 },
-  { id: 'order_10', emoji: '🏅', name: '十单元老', desc: '累计点单10次', phase: 2 },
-  { id: 'msg_30', emoji: '💬', name: '话痨本痨', desc: '留言超过30条', phase: 2 },
-  { id: 'wishlist_5', emoji: '🌟', name: '许愿达人', desc: '许了5个愿望', phase: 2 },
-  { id: 'review_10', emoji: '🍽️', name: '美食评论家', desc: '评价10次', phase: 2 },
-  { id: 'all_good', emoji: '⭐', name: '全五星好评', desc: '给所有菜品好评', phase: 2 },
-];
+showIdentityPicker();
+
+let _titleTapCount = 0;
+let _titleTapTimer = null;
+document.getElementById('page-title').addEventListener('click', function() {
+  _titleTapCount++;
+  clearTimeout(_titleTapTimer);
+  _titleTapTimer = setTimeout(() => { _titleTapCount = 0; }, 2000);
+  if (_titleTapCount >= 5) {
+    _titleTapCount = 0;
+    showSwitchUser();
+  }
+});
+
+function showSwitchUser() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.3s ease;';
+  const current = User.get();
+  overlay.innerHTML = '<div style="background:white;border-radius:24px;padding:36px 28px;text-align:center;width:85%;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,0.15)">' +
+    '<div style="font-size:18px;font-weight:700;color:#333;margin-bottom:8px">切换身份</div>' +
+    '<div style="font-size:13px;color:#aaa;margin-bottom:24px">当前：' + (current === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希') + '</div>' +
+    '<div style="display:flex;gap:12px;justify-content:center">' +
+      '<button id="sw-bingbing" style="flex:1;padding:16px 12px;border:2px solid ' + (current === 'bingbing' ? '#66bb6a' : '#e8f5e9') + ';border-radius:16px;background:white;cursor:pointer">' +
+        '<div style="font-size:32px;margin-bottom:8px">🧊</div><div style="font-size:14px;font-weight:600;color:#333">🧊🧊女王</div>' +
+      '</button>' +
+      '<button id="sw-jiaxi" style="flex:1;padding:16px 12px;border:2px solid ' + (current === 'jiaxi' ? '#66bb6a' : '#e3f2fd') + ';border-radius:16px;background:white;cursor:pointer">' +
+        '<div style="font-size:32px;margin-bottom:8px">👨‍🍳</div><div style="font-size:14px;font-weight:600;color:#333">家希</div>' +
+      '</button>' +
+    '</div>' +
+    '<div style="margin-top:16px;font-size:12px;color:#ccc">点击空白处关闭</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+  overlay.querySelector('#sw-bingbing').addEventListener('click', function() { User.set('bingbing'); overlay.remove(); location.reload(); });
+  overlay.querySelector('#sw-jiaxi').addEventListener('click', function() { User.set('jiaxi'); overlay.remove(); location.reload(); });
+}
+const ALL_ACHIEVEMENTS = ACHIEVEMENTS;
 
 async function loadAchievements() {
-  const res = await fetch(SUPABASE_URL + '/rest/v1/achievements?user=eq.' + User.getViewUser() + '&select=achievement_id', { headers: supabaseHeaders });
-  const data = res.ok ? await res.json() : [];
-  const unlocked = [...new Set(data.map(d => d.achievement_id))];
+  await verifyAchievements();
+  const unlocked = await getUnlockedAchievements();
 
-  const phase1 = ALL_ACHIEVEMENTS.filter(a => !a.phase);
-  const phase1Done = phase1.every(a => unlocked.includes(a.id));
-  const showList = phase1Done ? ALL_ACHIEVEMENTS : phase1;
-
-  document.getElementById('count').textContent = unlocked.length + ' / ' + showList.length;
+  const unlockedCount = ALL_ACHIEVEMENTS.filter(a => unlocked.includes(a.id)).length;
+  document.getElementById('count').textContent = unlockedCount + ' / ' + ALL_ACHIEVEMENTS.length;
 
   const listEl = document.getElementById('achievement-list');
-  listEl.innerHTML = showList.map(ach => {
+  listEl.innerHTML = ALL_ACHIEVEMENTS.map(ach => {
     const isUnlocked = unlocked.includes(ach.id);
     return '<div class="achievement-item ' + (isUnlocked ? 'unlocked' : 'locked') + '">' +
       '<div class="achievement-emoji">' + (isUnlocked ? ach.emoji : '🔒') + '</div>' +
@@ -99,6 +117,69 @@ async function loadAchievements() {
       '<span class="achievement-status ' + (isUnlocked ? 'done' : 'todo') + '">' + (isUnlocked ? '已解锁' : '未解锁') + '</span>' +
     '</div>';
   }).join('');
+}
+
+async function verifyAchievements() {
+  if (User.isViewMode()) return;
+  const user = User.get();
+  if (!user) return;
+  const unlocked = await getUnlockedAchievements();
+
+  if (!unlocked.includes('first_order')) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/orders?user=eq.' + user + '&select=id&limit=1', { headers: supabaseHeaders });
+    const data = res.ok ? await res.json() : [];
+    if (data.length > 0) await unlockAchievement('first_order');
+  }
+
+  if (!unlocked.includes('streak_3')) {
+    const streak = await getOrderStreak();
+    if (streak >= 3) await unlockAchievement('streak_3');
+  }
+
+  if (!unlocked.includes('streak_7')) {
+    const streak = await getOrderStreak();
+    if (streak >= 7) await unlockAchievement('streak_7');
+  }
+
+  if (!unlocked.includes('wishlist_done')) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/dishes?from_wish=eq.true&select=id&limit=1', { headers: supabaseHeaders });
+    const data = res.ok ? await res.json() : [];
+    if (data.length > 0) await unlockAchievement('wishlist_done');
+  }
+
+  if (!unlocked.includes('msg_10')) {
+    const count = await getMessageCount();
+    if (count >= 10) await unlockAchievement('msg_10');
+  }
+
+  if (!unlocked.includes('msg_30')) {
+    const count = await getMessageCount();
+    if (count >= 30) await unlockAchievement('msg_30');
+  }
+
+  if (!unlocked.includes('random_5')) {
+    const count = await getInteractionCount('random');
+    if (count >= 5) await unlockAchievement('random_5');
+  }
+
+  if (!unlocked.includes('order_10')) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/orders?user=eq.' + user + '&select=eat_date', { headers: supabaseHeaders });
+    const data = res.ok ? await res.json() : [];
+    const distinctDates = [...new Set(data.map(o => o.eat_date))];
+    if (distinctDates.length >= 10) await unlockAchievement('order_10');
+  }
+
+  if (!unlocked.includes('wishlist_5')) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/wishlist?user=eq.' + user + '&select=id', { headers: supabaseHeaders });
+    const data = res.ok ? await res.json() : [];
+    if (data.length >= 5) await unlockAchievement('wishlist_5');
+  }
+
+  if (!unlocked.includes('review_10')) {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/reviews?user=eq.' + user + '&select=id', { headers: supabaseHeaders });
+    const data = res.ok ? await res.json() : [];
+    if (data.length >= 10) await unlockAchievement('review_10');
+  }
 }
 
 loadAchievements();
