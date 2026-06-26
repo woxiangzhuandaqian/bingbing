@@ -55,12 +55,15 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
 .test-panel {
   position: fixed; bottom: 70px; left: 0; width: 100%; z-index: 50;
   padding: 8px 16px; background: white; border-top: 1px solid #f0f0f0;
-  display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 90px; overflow-y: auto;
 }
+.test-panel::-webkit-scrollbar { display: none; }
+.test-row { display: flex; gap: 8px; flex-shrink: 0; }
 .test-btn {
   padding: 8px 14px; border: none; border-radius: 20px;
   background: #f5f5f5; color: #333; font-size: 12px; cursor: pointer;
-  white-space: nowrap; transition: all 0.2s;
+  white-space: nowrap; flex-shrink: 0; transition: all 0.2s;
 }
 .test-btn:active { transform: scale(0.92); background: #e0e0e0; }
 </style>
@@ -68,21 +71,25 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
 <body>
 
 <div class="test-panel">
-  <button class="test-btn" onclick="playState('idle')">😺 待机</button>
-  <button class="test-btn" onclick="playState('waving')">👋 挥手</button>
-  <button class="test-btn" onclick="playState('jumping')">🦘 跳跃</button>
-  <button class="test-btn" onclick="playState('running-right')">➡️ 向右跑</button>
-  <button class="test-btn" onclick="playState('running-left')">⬅️ 向左跑</button>
-  <button class="test-btn" onclick="playState('running')">💻 工作</button>
-  <button class="test-btn" onclick="playState('waiting')">⏳ 等待</button>
-  <button class="test-btn" onclick="playState('failed')">😿 伤心</button>
-  <button class="test-btn" onclick="playState('review')">🙃 摇头晃脑</button>
-  <button class="test-btn" onclick="playState('sleeping')">😴 睡觉</button>
-  <button class="test-btn" onclick="playState('eating')">🍚 吃饭</button>
-  <button class="test-btn" onclick="playState('drinking')">💧 喝水</button>
-  <button class="test-btn" onclick="playExtra('bixin')">💗 比心</button>
-  <button class="test-btn" onclick="playExtra('yarn')">🧶 玩毛线球</button>
-  <button class="test-btn" onclick="playExtra('angry')">💢 生气</button>
+  <div class="test-row">
+    <button class="test-btn" onclick="playState('idle')">😺 待机</button>
+    <button class="test-btn" onclick="playState('waving')">👋 挥手</button>
+    <button class="test-btn" onclick="playState('jumping')">🦘 跳跃</button>
+    <button class="test-btn" onclick="playState('running-right')">➡️ 向右跑</button>
+    <button class="test-btn" onclick="playState('running-left')">⬅️ 向左跑</button>
+    <button class="test-btn" onclick="playState('running')">💻 工作</button>
+    <button class="test-btn" onclick="playState('waiting')">⏳ 等待</button>
+    <button class="test-btn" onclick="playState('failed')">😿 伤心</button>
+  </div>
+  <div class="test-row">
+    <button class="test-btn" onclick="playState('review')">🙃 摇头晃脑</button>
+    <button class="test-btn" onclick="playState('sleeping')">😴 睡觉</button>
+    <button class="test-btn" onclick="playState('eating')">🍚 吃饭</button>
+    <button class="test-btn" onclick="playState('drinking')">💧 喝水</button>
+    <button class="test-btn" onclick="playExtra('bixin')">💗 比心</button>
+    <button class="test-btn" onclick="playExtra('yarn')">🧶 玩毛线球</button>
+    <button class="test-btn" onclick="playExtra('angry')">💢 生气</button>
+  </div>
 </div>
 
 <div class="info">
