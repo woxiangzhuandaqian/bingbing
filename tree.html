@@ -83,7 +83,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
   </div>
   <div class="test-row">
     <button class="test-btn" onclick="playState('review')">🙃 摇头晃脑</button>
-    <button class="test-btn" onclick="playState('sleeping')">😴 睡觉</button>
+    <button class="test-btn" onclick="playExtra('sleeping')">😴 睡觉</button>
     <button class="test-btn" onclick="playState('eating')">🍚 吃饭</button>
     <button class="test-btn" onclick="playState('drinking')">💧 喝水</button>
     <button class="test-btn" onclick="playExtra('bixin')">💗 比心</button>
@@ -195,6 +195,7 @@ function setSpritesheet() { pet.style.backgroundImage = `url("${PETS[petId]}")`;
 const EXTRA_SPRITE = 'pet/sprites/linecat-extra.spritesheet.webp';
 const EXTRA_GRID = { cols: 8, rows: 6 };
 const EXTRA_ANIMATIONS = {
+  sleeping: { row: 0, n: 8, dur: 320, last: 520, loopStart: 4 },
   bixin: { row: 3, n: 4, dur: 140, last: 260 },
   yarn: { row: 4, n: 6, dur: 140, last: 260 },
   angry: { row: 5, n: 6, dur: 140, last: 260 },
@@ -223,9 +224,11 @@ function playExtra(name) {
   };
 
   pet.style.backgroundPosition = getBgPosExtra(frames[0]);
+  const loopStart = anim.loopStart || 0;
   const step = () => {
     timeoutId = setTimeout(() => {
-      i = (i + 1) % frames.length;
+      i++;
+      if (i >= frames.length) i = loopStart;
       pet.style.backgroundPosition = getBgPosExtra(frames[i]);
       step();
     }, frames[i].frameDurationMs);
