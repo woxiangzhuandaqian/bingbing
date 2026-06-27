@@ -73,21 +73,21 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
 <div class="test-panel">
   <div class="test-row">
     <button class="test-btn" onclick="playState('idle')">😺 待机</button>
-    <button class="test-btn" onclick="playState('waving')">👋 挥手</button>
-    <button class="test-btn" onclick="playState('jumping')">🦘 跳跃</button>
-    <button class="test-btn" onclick="playState('running-right')">➡️ 向右跑</button>
-    <button class="test-btn" onclick="playState('running-left')">⬅️ 向左跑</button>
-    <button class="test-btn" onclick="playState('running')">💻 工作</button>
+    <button class="test-btn" onclick="playState('waving');boostHappy(1)">👋 挥手</button>
+    <button class="test-btn" onclick="playState('jumping');boostHappy(1)">🦘 跳跃</button>
+    <button class="test-btn" onclick="playState('running-right');boostHappy(1)">➡️ 向右跑</button>
+    <button class="test-btn" onclick="playState('running-left');boostHappy(1)">⬅️ 向左跑</button>
+    <button class="test-btn" onclick="playState('running');boostHappy(1)">💻 工作</button>
     <button class="test-btn" onclick="playState('waiting')">⏳ 等待</button>
     <button class="test-btn" onclick="playState('failed')">😿 伤心</button>
   </div>
   <div class="test-row">
-    <button class="test-btn" onclick="playState('review')">🙃 摇头晃脑</button>
-    <button class="test-btn" onclick="playExtra('sleeping')">😴 睡觉</button>
+    <button class="test-btn" onclick="playState('review');boostHappy(1)">🙃 摇头晃脑</button>
+    <button class="test-btn" onclick="playExtra('sleeping');sleepCat()">😴 睡觉</button>
     <button class="test-btn" onclick="playState('eating');feedCat()">🍚 吃饭</button>
     <button class="test-btn" onclick="playState('drinking');waterCat()">💧 喝水</button>
-    <button class="test-btn" onclick="playExtra('bixin')">💗 比心</button>
-    <button class="test-btn" onclick="playExtra('yarn')">🧶 玩毛线球</button>
+    <button class="test-btn" onclick="playExtra('bixin');boostHappy(2)">💗 比心</button>
+    <button class="test-btn" onclick="playExtra('yarn');boostHappy(2)">🧶 玩毛线球</button>
     <button class="test-btn" onclick="playExtra('angry')">💢 生气</button>
   </div>
 </div>
@@ -372,6 +372,20 @@ function feedCat() {
 
 function waterCat() {
   petStatus.water = Math.min(100, petStatus.water + 2);
+  petStatus.happiness = Math.min(100, petStatus.happiness + 1);
+  updateStatusUI();
+  savePetStatus();
+}
+
+function boostHappy(n) {
+  petStatus.happiness = Math.min(100, petStatus.happiness + n);
+  updateStatusUI();
+  savePetStatus();
+}
+
+function sleepCat() {
+  petStatus.hunger = Math.min(100, petStatus.hunger + 1);
+  petStatus.water = Math.min(100, petStatus.water + 1);
   petStatus.happiness = Math.min(100, petStatus.happiness + 1);
   updateStatusUI();
   savePetStatus();
