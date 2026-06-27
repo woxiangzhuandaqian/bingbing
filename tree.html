@@ -84,8 +84,8 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: #ff
   <div class="test-row">
     <button class="test-btn" onclick="playState('review')">🙃 摇头晃脑</button>
     <button class="test-btn" onclick="playExtra('sleeping')">😴 睡觉</button>
-    <button class="test-btn" onclick="playState('eating')">🍚 吃饭</button>
-    <button class="test-btn" onclick="playState('drinking')">💧 喝水</button>
+    <button class="test-btn" onclick="playState('eating');feedCat()">🍚 吃饭</button>
+    <button class="test-btn" onclick="playState('drinking');waterCat()">💧 喝水</button>
     <button class="test-btn" onclick="playExtra('bixin')">💗 比心</button>
     <button class="test-btn" onclick="playExtra('yarn')">🧶 玩毛线球</button>
     <button class="test-btn" onclick="playExtra('angry')">💢 生气</button>
@@ -358,8 +358,21 @@ function onPetClick() {
   const words = CAT_WORDS.petted;
   showBubble(words[Math.floor(Math.random() * words.length)]);
   playState('waving');
-  // 点击加心情
   petStatus.happiness = Math.min(100, petStatus.happiness + 2);
+  updateStatusUI();
+  savePetStatus();
+}
+
+function feedCat() {
+  petStatus.hunger = Math.min(100, petStatus.hunger + 2);
+  petStatus.happiness = Math.min(100, petStatus.happiness + 1);
+  updateStatusUI();
+  savePetStatus();
+}
+
+function waterCat() {
+  petStatus.water = Math.min(100, petStatus.water + 2);
+  petStatus.happiness = Math.min(100, petStatus.happiness + 1);
   updateStatusUI();
   savePetStatus();
 }
