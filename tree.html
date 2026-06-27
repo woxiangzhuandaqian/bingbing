@@ -331,9 +331,9 @@ function updateStatusUI() {
 function calculateDecay(status) {
   const now = Date.now();
   const elapsed = (now - status.last_update) / (1000 * 60 * 60); // 小时
-  const hunger = Math.max(0, status.hunger - elapsed * 3);
-  const water = Math.max(0, status.water - elapsed * 2);
-  const happiness = Math.max(0, status.happiness - elapsed * 2);
+  const hunger = Math.max(20, status.hunger - elapsed * 0.3);
+  const water = Math.max(20, status.water - elapsed * 0.2);
+  const happiness = Math.max(20, status.happiness - elapsed * 0.15);
   return { hunger, water, happiness };
 }
 

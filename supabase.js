@@ -121,12 +121,12 @@ const GROWTH_VALUES = {
 
 // 互动对猫属性的加成
 const PET_BOOST = {
-  message: { water: 3, happiness: 1 },
-  wishlist: { happiness: 3 },
-  order: { hunger: 5, happiness: 2 },
-  review: { hunger: 2, happiness: 1 },
-  wish_done: { happiness: 8, hunger: 3 },
-  reply: { water: 2, happiness: 1 }
+  message: { hunger: 4, water: 3, happiness: 2 },
+  wishlist: { hunger: 1, water: 1, happiness: 4 },
+  order: { hunger: 5, water: 2, happiness: 3 },
+  review: { hunger: 3, water: 1, happiness: 2 },
+  wish_done: { hunger: 5, water: 3, happiness: 8 },
+  reply: { hunger: 2, water: 3, happiness: 2 }
 };
 
 function trackInteraction(action) {
