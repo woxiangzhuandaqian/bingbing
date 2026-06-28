@@ -50,8 +50,12 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 
 /* 回复区 */
 .note-replies { margin-top: 8px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 6px; }
-.reply-item { font-size: 11px; color: #555; line-height: 1.5; margin-bottom: 4px; }
+.reply-item { font-size: 11px; color: #555; line-height: 1.5; margin-bottom: 4px; cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background 0.2s; }
+.reply-item:active { background: rgba(0,0,0,0.05); }
 .reply-item-name { font-weight: 600; color: #888; }
+.reply-quote { font-size: 10px; color: #999; padding: 1px 6px; border-left: 2px solid #ddd; background: rgba(0,0,0,0.03); border-radius: 0 4px 4px 0; margin-bottom: 2px; }
+.reply-target-hint { font-size: 10px; color: #66bb6a; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+.reply-target-hint .cancel-reply { color: #f44336; cursor: pointer; margin-left: 6px; }
 .note-reply-input {
   display: flex; gap: 4px; margin-top: 6px;
 }
@@ -105,6 +109,7 @@ const COLORS = ['note-yellow', 'note-pink', 'note-blue', 'note-green', 'note-ora
 const ROTATIONS = [-3, -1.5, 0, 1.5, 3, -2, 2];
 
 let messages = [];
+let msgReplyTarget = null; // { msgIdx, replyId, text }
 
 function renderMessages() {
   const board = document.getElementById('board');
@@ -120,13 +125,17 @@ function renderMessages() {
       const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
       const t = new Date(r.time);
       const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-      return '<div class="reply-item"><span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
+      const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
+      return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
     }).join('');
+    const hintHtml = msgReplyTarget && msgReplyTarget.msgIdx === i
+      ? '<div class="reply-target-hint">回复：' + escapeHtml(msgReplyTarget.text.substring(0, 15)) + '<span class="cancel-reply" onclick="cancelMsgReply()">✕</span></div>'
+      : '';
     return '<div class="note ' + color + '" style="--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
       '<span class="note-pin">📌</span>' +
       '<div class="note-text">' + escapeHtml(item.text) + '</div>' +
       '<div class="note-time">' + formatTime(item.time) + '</div>' +
-      '<div class="note-replies">' + repliesHtml +
+      '<div class="note-replies">' + repliesHtml + hintHtml +
         '<div class="note-reply-input">' +
           '<input id="reply-input-' + i + '" placeholder="回复~" maxlength="60" onkeydown="if(event.key===\'Enter\')replyTo(' + i + ')">' +
           '<button onclick="replyTo(' + i + ')">➤</button>' +
@@ -134,6 +143,30 @@ function renderMessages() {
       '</div>' +
     '</div>';
   }).join('');
+}
+
+function getMsgQuoteHtml(replyToId, replies, msg) {
+  const orig = replies.find(r => r.id === replyToId);
+  if (orig) {
+    const name = orig.user === 'bingbing' ? '🧊冰冰' : '张笨笨';
+    const short = orig.text.length > 15 ? orig.text.substring(0, 15) + '...' : orig.text;
+    return '<div class="reply-quote">' + name + '：' + escapeHtml(short) + '</div>';
+  }
+  return '';
+}
+
+function setMsgReplyTarget(msgIdx, replyId, el) {
+  const textNode = el.querySelector('.reply-item-name');
+  const fullText = el.textContent.trim();
+  msgReplyTarget = { msgIdx: msgIdx, replyId: replyId, text: fullText };
+  renderMessages();
+  const input = document.getElementById('reply-input-' + msgIdx);
+  if (input) input.focus();
+}
+
+function cancelMsgReply() {
+  msgReplyTarget = null;
+  renderMessages();
 }
 
 async function addMessage() {
@@ -187,13 +220,21 @@ async function replyTo(i) {
   const user = User.get();
   if (!user) { await showIdentityPicker(); }
   input.value = '';
+  const body = { target_table: 'messages', target_id: messages[i].id, text: text, user: User.get(), time: Date.now() };
+  if (msgReplyTarget && msgReplyTarget.msgIdx === i) {
+    body.reply_to = msgReplyTarget.replyId;
+  }
   await fetch(SB_URL + '/rest/v1/replies', {
     method: 'POST',
     headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
-    body: JSON.stringify({ target_table: 'messages', target_id: messages[i].id, text: text, user: User.get(), time: Date.now() })
+    body: JSON.stringify(body)
   });
+  msgReplyTarget = null;
   trackInteraction('reply');
-  sendNotification('💬 回复留言：' + text);
+  const orig = messages[i];
+  const d = new Date(orig.time);
+  const origTime = d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
+  sendNotification('💬 回复留言\n原留言：' + orig.text + '\n留言时间：' + origTime + '\n回复内容：' + text);
   loadMessages();
 }
 
