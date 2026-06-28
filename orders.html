@@ -155,6 +155,8 @@ async function submitOrderReview(idx, emoji) {
     headers: supabaseHeaders,
     body: JSON.stringify({ target_table: 'orders', target_id: allOrders[idx].id, text: reviewText, user: User.get(), time: Date.now() })
   });
+  trackInteraction('review');
+  sendNotification('⭐ 订单评价：' + reviewText);
   loadOrders();
 }
 

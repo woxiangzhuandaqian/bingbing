@@ -193,6 +193,7 @@ async function replyTo(i) {
     body: JSON.stringify({ target_table: 'messages', target_id: messages[i].id, text: text, user: User.get(), time: Date.now() })
   });
   trackInteraction('reply');
+  sendNotification('💬 回复留言：' + text);
   loadMessages();
 }
 
