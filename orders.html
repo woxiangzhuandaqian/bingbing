@@ -77,6 +77,18 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .order-review-btn:active { transform: scale(0.9); }
 .order-review-btn.good { background: #e8f5e9; color: #2e7d32; }
 .order-review-btn.bad { background: #fce4ec; color: #c62828; }
+
+.order-review-item { cursor: pointer; border-radius: 6px; padding: 2px 4px; transition: background 0.2s; }
+.order-review-item:active { background: #f0f0f0; }
+.reply-quote {
+  font-size: 11px; color: #999; padding: 2px 8px; margin-bottom: 2px;
+  border-left: 2px solid #ddd; background: #f9f9f9; border-radius: 0 6px 6px 0;
+}
+.reply-target-hint {
+  font-size: 11px; color: #66bb6a; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 4px;
+}
+.reply-target-hint .cancel-reply { color: #f44336; cursor: pointer; margin-left: 8px; }
 </style>
 </head>
 <body>
@@ -92,6 +104,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 <script>
 let allOrders = [];
 let allOrderReplies = [];
+let replyTarget = null; // { orderIdx, replyId, text }
 
 async function loadOrders() {
   allOrders = await DB.getAll('orders', 'time.desc');
@@ -118,8 +131,12 @@ function renderOrders() {
       const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
       const t = new Date(r.time);
       const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-      return '<div class="order-review-item"><span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
+      const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
+      return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
     }).join('');
+    const hintHtml = replyTarget && replyTarget.orderIdx === idx
+      ? '<div class="reply-target-hint">回复：' + replyTarget.text.substring(0, 20) + '<span class="cancel-reply" onclick="cancelReply()">✕</span></div>'
+      : '';
     return '<div class="order-card">' +
       '<div class="order-card-header">' +
         '<span class="order-card-date">🍽️ ' + eatLabel + ' 吃</span>' +
@@ -131,6 +148,7 @@ function renderOrders() {
       '<div class="order-review">' +
         '<div class="order-review-label">顾客评价</div>' +
         '<div class="order-review-list">' + (repliesHtml || '<span style="color:#ccc;font-size:11px">暂无评价~</span>') + '</div>' +
+        hintHtml +
         '<div class="order-review-input">' +
           '<button class="order-review-btn good" onclick="submitOrderReview(' + idx + ',\'👍\')">👍</button>' +
           '<button class="order-review-btn bad" onclick="submitOrderReview(' + idx + ',\'👎\')">👎</button>' +
@@ -142,6 +160,27 @@ function renderOrders() {
   }).join('');
 }
 
+function getQuoteHtml(replyToId, replies) {
+  const orig = replies.find(r => r.id === replyToId);
+  if (!orig) return '';
+  const name = orig.user === 'bingbing' ? '🧊🧊' : '家希';
+  const short = orig.text.length > 20 ? orig.text.substring(0, 20) + '...' : orig.text;
+  return '<div class="reply-quote">' + name + '：' + short.replace(/</g,'&lt;') + '</div>';
+}
+
+function setReplyTarget(orderIdx, replyId, el) {
+  const text = el.querySelector('.order-review-content').textContent;
+  replyTarget = { orderIdx: orderIdx, replyId: replyId, text: text };
+  renderOrders();
+  const input = document.getElementById('order-review-' + orderIdx);
+  if (input) input.focus();
+}
+
+function cancelReply() {
+  replyTarget = null;
+  renderOrders();
+}
+
 async function submitOrderReview(idx, emoji) {
   const input = document.getElementById('order-review-' + idx);
   const text = input.value.trim();
@@ -150,11 +189,16 @@ async function submitOrderReview(idx, emoji) {
   const user = User.get();
   if (!user) { await showIdentityPicker(); }
   input.value = '';
+  const body = { target_table: 'orders', target_id: allOrders[idx].id, text: reviewText, user: User.get(), time: Date.now() };
+  if (replyTarget && replyTarget.orderIdx === idx) {
+    body.reply_to = replyTarget.replyId;
+  }
   await fetch(SUPABASE_URL + '/rest/v1/replies', {
     method: 'POST',
     headers: supabaseHeaders,
-    body: JSON.stringify({ target_table: 'orders', target_id: allOrders[idx].id, text: reviewText, user: User.get(), time: Date.now() })
+    body: JSON.stringify(body)
   });
+  replyTarget = null;
   trackInteraction('review');
   sendNotification('⭐ 订单评价：' + reviewText);
   loadOrders();
