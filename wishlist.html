@@ -173,7 +173,8 @@ const wishBar = InputBar.create({
   showImage: false,
   onSend: addWish
 });
-wishBar.getSendBtn().style.cssText = 'background:#ffd700;color:#333;width:36px;height:36px;border-radius:50%;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0';
+wishBar.getSendBtn().style.background = '#ffd700';
+wishBar.getSendBtn().style.color = '#333';
 
 function renderWishlist() {
   const area = document.getElementById('pool-area');

@@ -24,14 +24,14 @@ const InputBar = (() => {
 }
 .input-bar-text:focus { border-color: var(--green, #66bb6a); }
 .input-bar-img {
-  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
   font-size: 20px; cursor: pointer; opacity: 0.6; border-radius: 50%;
   flex-shrink: 0; transition: opacity 0.15s;
 }
 .input-bar-img:active { opacity: 1; }
 .input-bar-send {
-  width: 36px; height: 36px; border-radius: 50%; border: none;
-  background: var(--green, #66bb6a); color: white; font-size: 16px;
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: var(--green, #66bb6a); color: white; font-size: 18px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; transition: transform 0.15s;
 }

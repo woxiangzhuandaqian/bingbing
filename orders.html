@@ -99,11 +99,9 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .order-review-input {
   display: flex; gap: 6px; align-items: center;
 }
-.order-review-input input {
-  flex: 1; padding: 6px 10px; border: 1px solid #eee; border-radius: 12px;
-  font-size: 12px; outline: none;
+.order-review-input .input-bar-text {
+  padding: 6px 10px; border-radius: 12px; font-size: 12px;
 }
-.order-review-input input:focus { border-color: var(--green); }
 .order-review-btn {
   padding: 5px 10px; border: none; border-radius: 10px;
   font-size: 13px; cursor: pointer; transition: all 0.2s;
@@ -206,9 +204,9 @@ function renderOrders() {
         '<div class="order-review-input">' +
           '<button class="order-review-btn good" onclick="submitOrderReview(' + idx + ',\'👍\')">👍</button>' +
           '<button class="order-review-btn bad" onclick="submitOrderReview(' + idx + ',\'👎\')">👎</button>' +
-          '<input id="order-review-' + idx + '" placeholder="说两句~" onkeydown="if(event.key===\'Enter\')submitOrderReview(' + idx + ')">' +
-          '<label style="font-size:14px;cursor:pointer;opacity:0.6">📷<input type="file" accept="image/*" style="display:none" onchange="previewOrderImg(this,' + idx + ')"></label>' +
-          '<button class="order-review-btn" style="background:#66bb6a;color:white" onclick="submitOrderReview(' + idx + ')">➤</button>' +
+          '<input id="order-review-' + idx + '" class="input-bar-text" placeholder="说两句~" onkeydown="if(event.key===\'Enter\')submitOrderReview(' + idx + ')">' +
+          '<label class="input-bar-img" style="width:32px;height:32px;font-size:16px">📷<input type="file" accept="image/*" style="display:none" onchange="previewOrderImg(this,' + idx + ')"></label>' +
+          '<button class="input-bar-send" style="width:32px;height:32px;font-size:14px" onclick="submitOrderReview(' + idx + ')">➤</button>' +
         '</div>' +
         '<div id="order-img-preview-' + idx + '" style="display:none;margin-top:4px;padding:0 4px"><img style="max-height:40px;border-radius:6px"><span onclick="clearOrderImg(' + idx + ')" style="margin-left:4px;color:#ccc;cursor:pointer;font-size:10px">✕</span></div>' +
       '</div>' +
