@@ -308,6 +308,7 @@ function rateDish(dish, rating) {
   }
   Store.set('dish_ratings', ratings);
   document.querySelector('.dish-modal-overlay').remove();
+  showDishRating(dish);
   renderOrders();
   if (ratings[dish]) {
     sendNotification('🍽️ 菜品评价：' + dish + ' → ' + (rating === 'good' ? '👍好评' : '👎差评'));
