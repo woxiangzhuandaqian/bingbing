@@ -190,9 +190,9 @@ function renderOrders() {
       '</div>' +
       '<div class="order-card-items">' +
         order.items.map((item, i) => {
-          const rating = getDishRating(item);
+          const rating = getDishRating(item, order.id);
           const badge = rating ? '<span class="item-badge">' + (rating === 'good' ? '👍' : '👎') + '</span>' : '';
-          return '<span class="order-card-item order-tag-' + (i % 7) + '" onclick="event.stopPropagation();showDishRating(\'' + item + '\')">' + item + badge + '</span>';
+          return '<span class="order-card-item order-tag-' + (i % 7) + '" onclick="event.stopPropagation();showDishRating(\'' + item + '\',\'' + order.id + '\')">' + item + badge + '</span>';
         }).join('') +
       '</div>' +
       '<div class="order-review">' +
@@ -289,15 +289,15 @@ async function submitOrderReview(idx, emoji, text, imageUrl, imagePromise) {
   loadOrders();
 }
 
-function getDishRating(dish) {
+function getDishRating(dish, orderId) {
   const ratings = Store.get('dish_ratings', {});
-  return ratings[dish] || null;
+  return ratings[orderId + ':' + dish] || null;
 }
 
-function showDishRating(dish) {
+function showDishRating(dish, orderId) {
   const overlay = document.createElement('div');
   overlay.className = 'dish-modal-overlay';
-  const current = getDishRating(dish);
+  const current = getDishRating(dish, orderId);
   const comments = getDishComments(dish);
   let commentsHtml = '';
   if (comments.length === 0) {
@@ -325,8 +325,8 @@ function showDishRating(dish) {
   overlay.innerHTML = '<div class="dish-modal">' +
     '<div class="dish-modal-name">' + dish + '</div>' +
     '<div class="dish-modal-btns">' +
-      '<button class="dish-modal-btn good" style="' + (current === 'good' ? 'box-shadow:0 0 0 2px #66bb6a' : '') + '" onclick="rateDish(\'' + dish + '\',\'good\')">👍</button>' +
-      '<button class="dish-modal-btn bad" style="' + (current === 'bad' ? 'box-shadow:0 0 0 2px #f44336' : '') + '" onclick="rateDish(\'' + dish + '\',\'bad\')">👎</button>' +
+      '<button class="dish-modal-btn good" style="' + (current === 'good' ? 'box-shadow:0 0 0 2px #66bb6a' : '') + '" onclick="rateDish(\'' + dish + '\',\'good\',\'' + orderId + '\')">👍</button>' +
+      '<button class="dish-modal-btn bad" style="' + (current === 'bad' ? 'box-shadow:0 0 0 2px #f44336' : '') + '" onclick="rateDish(\'' + dish + '\',\'bad\',\'' + orderId + '\')">👎</button>' +
     '</div>' +
     '<div class="dish-modal-comments">' + commentsHtml + '</div>' +
     '<div id="dish-input-wrap" style="margin-top:12px"></div>' +
@@ -359,18 +359,19 @@ async function addDishComment(dish, text, imageUrl, imagePromise) {
   sendNotification('💬 菜品评价：' + dish + ' → ' + (text || '[图片]'));
 }
 
-function rateDish(dish, rating) {
+function rateDish(dish, rating, orderId) {
   const ratings = Store.get('dish_ratings', {});
-  if (ratings[dish] === rating) {
-    delete ratings[dish];
+  const key = orderId + ':' + dish;
+  if (ratings[key] === rating) {
+    delete ratings[key];
   } else {
-    ratings[dish] = rating;
+    ratings[key] = rating;
   }
   Store.set('dish_ratings', ratings);
   document.querySelector('.dish-modal-overlay').remove();
-  showDishRating(dish);
+  showDishRating(dish, orderId);
   renderOrders();
-  if (ratings[dish]) {
+  if (ratings[key]) {
     sendNotification('🍽️ 菜品评价：' + dish + ' → ' + (rating === 'good' ? '👍好评' : '👎差评'));
   }
 }
