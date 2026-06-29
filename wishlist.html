@@ -15,13 +15,18 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 
 /* 许愿池 */
 .pool-area {
-  flex: 1; position: relative; overflow: hidden; padding: 20px;
+  flex: 1; position: relative; overflow-y: auto; overflow-x: hidden;
   padding-bottom: 100px;
+}
+.pool-canvas {
+  position: relative; width: 100%; min-height: 100%;
+  box-sizing: border-box;
 }
 
 .star-wish {
   position: absolute; cursor: pointer; transition: transform 0.3s;
   display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: 70px;
 }
 .star-wish:active { transform: scale(1.2); }
 
@@ -75,11 +80,9 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 .input-row {
   background: rgba(255,255,255,0.6); border-top: 1px solid rgba(0,0,0,0.05);
 }
-.input-field {
-  background: white; border-color: #e0e0e0; color: #333;
-}
-.input-field::placeholder { color: #aaa; }
-.input-field:focus { border-color: #ffb74d; }
+.input-bar-text { background: white; border-color: #e0e0e0; color: #333; }
+.input-bar-text::placeholder { color: #aaa; }
+.input-bar-text:focus { border-color: #ffb74d; }
 
 /* 点击详情弹窗 */
 .wish-detail {
@@ -137,12 +140,9 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
   <div class="page-header-title">✨ 许愿池</div>
 </div>
 
-<div class="pool-area" id="pool-area"></div>
+<div class="pool-area" id="pool-area"><div class="pool-canvas" id="pool-canvas"></div></div>
 
-<div class="input-row">
-  <input class="input-field" id="wish-input" placeholder="想吃什么？投币许愿~" maxlength="30">
-  <button class="input-submit" onclick="addWish()" style="background:#ffd700;color:#333">🪙</button>
-</div>
+<div class="input-row" id="wish-input-wrap"></div>
 
 <!-- 详情弹窗 -->
 <div class="wish-detail" id="wish-detail" onclick="if(event.target===this)this.classList.remove('show')">
@@ -162,43 +162,75 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 
 <script src="app.js?v=5"></script>
 <script src="supabase.js"></script>
+<script src="input-bar.js"></script>
 <script>
 let wishlist = [];
 
+const wishBar = InputBar.create({
+  container: 'wish-input-wrap',
+  placeholder: '想吃什么？投币许愿~',
+  sendIcon: '🪙',
+  showImage: false,
+  onSend: addWish
+});
+wishBar.getSendBtn().style.cssText = 'background:#ffd700;color:#333;width:36px;height:36px;border-radius:50%;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0';
+
 function renderWishlist() {
   const area = document.getElementById('pool-area');
+  const canvas = document.getElementById('pool-canvas');
   if (wishlist.length === 0) {
-    area.innerHTML = '<div class="pool-empty"><div class="pool-empty-emoji">🌙</div><div class="pool-empty-text">许愿池还是空的哦~<br>投一枚硬币，说出你想吃的</div></div>';
+    canvas.style.height = '';
+    canvas.innerHTML = '<div class="pool-empty"><div class="pool-empty-emoji">🌙</div><div class="pool-empty-text">许愿池还是空的哦~<br>投一枚硬币，说出你想吃的</div></div>';
     return;
   }
-  const positions = generatePositions(wishlist.length);
-  area.innerHTML = wishlist.map((item, i) => {
+  const layout = generatePositions(wishlist.length, area.clientWidth);
+  canvas.style.height = layout.height + 'px';
+  canvas.innerHTML = wishlist.map((item, i) => {
     const done = item.done;
-    const pos = positions[i];
-    return '<div class="star-wish ' + (done ? 'done' : '') + '" style="left:' + pos.x + '%;top:' + pos.y + '%" onclick="showWishDetail(' + i + ')">' +
+    const pos = layout.positions[i];
+    return '<div class="star-wish ' + (done ? 'done' : '') + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px" onclick="showWishDetail(' + i + ')">' +
       '<span class="star-icon">' + (done ? '🌟' : '⭐') + '</span>' +
       '<span class="star-label">' + item.text + '</span>' +
     '</div>';
   }).join('');
 }
 
-function generatePositions(count) {
+function hashId(id) {
+  const s = String(id);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+function seededRand(seed) {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function generatePositions(count, areaWidth) {
+  const PAD = 20;          // 画布内边距
+  const STAR_W = 70;       // 单颗星星宽度
+  const W = Math.max(STAR_W, areaWidth - PAD * 2); // 可用宽度
+  const cols = Math.max(2, Math.floor((W + 20) / (STAR_W + 20))); // 列数随宽度自适应
+  const colW = W / cols;
+  const rowH = 92;         // 行高
+  const slackX = Math.max(0, colW - STAR_W); // 格子内横向可抖动余量
+  const slackY = 20;       // 纵向抖动幅度
+
   const positions = [];
   for (let i = 0; i < count; i++) {
-    let x, y, ok;
-    let attempts = 0;
-    do {
-      x = 10 + Math.random() * 70;
-      y = 5 + Math.random() * 75;
-      ok = true;
-      for (const p of positions) {
-        if (Math.abs(p.x - x) < 18 && Math.abs(p.y - y) < 12) { ok = false; break; }
-      }
-      attempts++;
-    } while (!ok && attempts < 30);
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const id = wishlist[i] ? wishlist[i].id : i;
+    const seed = hashId(id);
+    const jitterX = (seededRand(seed) - 0.5) * slackX;
+    const jitterY = (seededRand(seed + 1) - 0.5) * slackY;
+    const x = PAD + col * colW + slackX / 2 + jitterX;
+    const y = PAD + row * rowH + jitterY;
     positions.push({ x, y });
   }
-  return positions;
+  const rows = Math.ceil(count / cols);
+  const height = PAD * 2 + rows * rowH;
+  return { positions, height };
 }
 
 async function loadWishlist() {
@@ -207,10 +239,8 @@ async function loadWishlist() {
   autoMatchWishes();
 }
 
-async function addWish() {
+async function addWish({ text }) {
   if (User.isViewMode()) return;
-  const input = document.getElementById('wish-input');
-  const text = input.value.trim();
   if (!text) return;
 
   const coin = document.createElement('div');
@@ -219,7 +249,6 @@ async function addWish() {
   document.body.appendChild(coin);
   setTimeout(() => coin.remove(), 1000);
 
-  input.value = '';
   const item = await DB.insert('wishlist', { text: text, time: Date.now(), done: false });
   if (item) {
     wishlist.unshift(item);

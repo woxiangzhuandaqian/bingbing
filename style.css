@@ -114,8 +114,6 @@ html, body {
 
 /* 输入框 */
 .input-row {
-  display: flex;
-  gap: 10px;
   padding: 12px 20px;
   position: fixed;
   bottom: 56px;

@@ -14,7 +14,7 @@ const InputBar = (() => {
     style.id = CSS_ID;
     style.textContent = `
 .input-bar {
-  display: flex; gap: 10px; align-items: center;
+  display: flex; gap: 10px; align-items: center; width: 100%;
 }
 .input-bar-text {
   flex: 1; min-width: 0; padding: 10px 14px;
@@ -52,17 +52,18 @@ const InputBar = (() => {
 
   let _counter = 0;
 
-  function create({ container, placeholder, sendIcon, onSend }) {
+  function create({ container, placeholder, sendIcon, onSend, showImage }) {
     injectStyle();
     const id = 'ib-' + (++_counter);
     const icon = sendIcon || '➤';
+    const hasImage = showImage !== false;
 
     const barEl = document.createElement('div');
     barEl.className = 'input-bar';
     barEl.id = id;
     barEl.innerHTML =
       '<input type="text" class="input-bar-text" placeholder="' + (placeholder || '说点什么~') + '" maxlength="200">' +
-      '<label class="input-bar-img">📷<input type="file" accept="image/*" style="display:none"></label>' +
+      (hasImage ? '<label class="input-bar-img">📷<input type="file" accept="image/*" style="display:none"></label>' : '') +
       '<button class="input-bar-send">' + icon + '</button>';
 
     const previewEl = document.createElement('div');
@@ -70,30 +71,32 @@ const InputBar = (() => {
     previewEl.innerHTML = '<img><span class="input-bar-rm">✕</span>';
 
     const textInput = barEl.querySelector('.input-bar-text');
-    const fileInput = barEl.querySelector('input[type="file"]');
+    const fileInput = hasImage ? barEl.querySelector('input[type="file"]') : null;
     const sendBtn = barEl.querySelector('.input-bar-send');
     const previewImg = previewEl.querySelector('img');
     const removeBtn = previewEl.querySelector('.input-bar-rm');
 
     let imgUploadPromise = null;
 
-    fileInput.addEventListener('change', function() {
-      const file = this.files[0];
-      if (!file) return;
-      imgUploadPromise = uploadImage(file);
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        previewImg.src = e.target.result;
-        previewEl.style.display = '';
-      };
-      reader.readAsDataURL(file);
-    });
+    if (fileInput) {
+      fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
+        imgUploadPromise = uploadImage(file);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+          previewEl.style.display = '';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
     function clearImg() {
       imgUploadPromise = null;
       previewEl.style.display = 'none';
       previewImg.src = '';
-      fileInput.value = '';
+      if (fileInput) fileInput.value = '';
     }
 
     removeBtn.addEventListener('click', clearImg);
@@ -109,7 +112,7 @@ const InputBar = (() => {
         imageUrl = await imgUploadPromise;
         imgUploadPromise = null;
         previewEl.style.display = 'none';
-        fileInput.value = '';
+        if (fileInput) fileInput.value = '';
       }
       textInput.value = '';
       if (onSend) onSend({ text, imageUrl });
