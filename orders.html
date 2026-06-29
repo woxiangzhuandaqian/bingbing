@@ -97,11 +97,13 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .order-review-time { font-size: 10px; color: #ccc; flex-shrink: 0; margin-left: 8px; }
 .reply-expand { font-size: 11px; color: #66bb6a; text-align: center; padding: 4px 0; cursor: pointer; }
 .order-review-input {
-  display: flex; gap: 6px; align-items: center;
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
 }
-.order-review-input .input-bar-text {
-  padding: 6px 10px; border-radius: 12px; font-size: 12px;
-}
+.order-bar-wrap { flex: 1; min-width: 0; }
+.order-bar-wrap .input-bar { gap: 6px; }
+.order-bar-wrap .input-bar-text { padding: 6px 10px; border-radius: 14px; font-size: 12px; }
+.order-bar-wrap .input-bar-img { width: 28px; height: 28px; font-size: 16px; }
+.order-bar-wrap .input-bar-send { width: 28px; height: 28px; font-size: 12px; }
 .order-review-btn {
   padding: 5px 10px; border: none; border-radius: 10px;
   font-size: 13px; cursor: pointer; transition: all 0.2s;
@@ -204,14 +206,22 @@ function renderOrders() {
         '<div class="order-review-input">' +
           '<button class="order-review-btn good" onclick="submitOrderReview(' + idx + ',\'👍\')">👍</button>' +
           '<button class="order-review-btn bad" onclick="submitOrderReview(' + idx + ',\'👎\')">👎</button>' +
-          '<input id="order-review-' + idx + '" class="input-bar-text" placeholder="说两句~" onkeydown="if(event.key===\'Enter\')submitOrderReview(' + idx + ')">' +
-          '<label class="input-bar-img" style="width:28px;height:28px;font-size:16px">📷<input type="file" accept="image/*" style="display:none" onchange="previewOrderImg(this,' + idx + ')"></label>' +
-          '<button class="input-bar-send" style="width:26px;height:26px;font-size:12px" onclick="submitOrderReview(' + idx + ')">➤</button>' +
+          '<div id="order-bar-' + idx + '" class="order-bar-wrap"></div>' +
         '</div>' +
-        '<div id="order-img-preview-' + idx + '" style="display:none;margin-top:4px;padding:0 4px"><img style="max-height:40px;border-radius:6px"><span onclick="clearOrderImg(' + idx + ')" style="margin-left:4px;color:#ccc;cursor:pointer;font-size:10px">✕</span></div>' +
       '</div>' +
     '</div>';
   }).join('');
+  // 挂载 InputBar 到每个订单评论区
+  allOrders.forEach((order, idx) => {
+    const wrap = document.getElementById('order-bar-' + idx);
+    if (!wrap) return;
+    InputBar.create({
+      container: wrap,
+      placeholder: '说两句~',
+      sendIcon: '➤',
+      onSend: function({ text, imageUrl }) { submitOrderReview(idx, null, text, imageUrl); }
+    });
+  });
 }
 
 function getQuoteHtml(replyToId, replies) {
@@ -253,42 +263,18 @@ function cancelReply() {
   container.scrollTop = scrollTop;
 }
 
-var _orderImgFiles = {};
-var _orderImgUploadPromises = {};
-function previewOrderImg(input, idx) {
-  if (!input.files[0]) return;
-  _orderImgFiles[idx] = input.files[0];
-  _orderImgUploadPromises[idx] = uploadImage(input.files[0]);
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var preview = document.getElementById('order-img-preview-' + idx);
-    preview.querySelector('img').src = e.target.result;
-    preview.style.display = 'flex';
-  };
-  reader.readAsDataURL(input.files[0]);
-}
-function clearOrderImg(idx) {
-  delete _orderImgFiles[idx];
-  var preview = document.getElementById('order-img-preview-' + idx);
-  if (preview) preview.style.display = 'none';
-}
-
-async function submitOrderReview(idx, emoji) {
-  const input = document.getElementById('order-review-' + idx);
-  const text = input.value.trim();
+async function submitOrderReview(idx, emoji, text, imageUrl) {
+  if (emoji) {
+    // 点击👍👎按钮时，从InputBar里取文本
+    const barWrap = document.getElementById('order-bar-' + idx);
+    const barInput = barWrap ? barWrap.querySelector('.input-bar-text') : null;
+    text = barInput ? barInput.value.trim() : '';
+    if (barInput) barInput.value = '';
+  }
   const reviewText = emoji ? (emoji + ' ' + (text || (emoji === '👍' ? '好评' : '差评'))) : text;
-  const hasImg = !!_orderImgFiles[idx];
-  if (!reviewText && !hasImg) return;
+  if (!reviewText && !imageUrl) return;
   const user = User.get();
   if (!user) { await showIdentityPicker(); }
-  input.value = '';
-  var imageUrl = null;
-  if (_orderImgUploadPromises[idx]) {
-    imageUrl = await _orderImgUploadPromises[idx];
-    delete _orderImgFiles[idx];
-    delete _orderImgUploadPromises[idx];
-    delete _orderImgFiles[idx];
-  }
   const body = { target_table: 'orders', target_id: allOrders[idx].id, text: reviewText || '', user: User.get(), time: Date.now() };
   if (imageUrl) body.image_url = imageUrl;
   if (replyTarget && replyTarget.orderIdx === idx) {
