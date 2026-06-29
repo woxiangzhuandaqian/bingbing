@@ -27,12 +27,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 }
 .note:active { transform: scale(0.96) rotate(0deg) !important; }
 
-@keyframes slapOn {
-  0% { opacity: 0; transform: scale(0.5) rotate(-10deg) translateY(-30px); }
-  60% { opacity: 1; transform: scale(1.05) rotate(1deg); }
-  100% { transform: scale(1) rotate(var(--rotate)); }
-}
-
 .note-text {
   font-size: 14px; line-height: 1.6; color: #333;
   word-break: break-all; flex: 1;
@@ -110,7 +104,6 @@ function renderMessages() {
     board.innerHTML = '<div class="board-empty"><div class="board-empty-emoji">📌</div><div class="board-empty-text">还没有便利贴哦~<br>写点什么，我会看到的</div></div>';
     return;
   }
-  const animStyle = _skipAnim ? '' : 'animation:slapOn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);';
   function renderReply(r, i, replies, item) {
     const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
     const t = new Date(r.time);
@@ -137,7 +130,7 @@ function renderMessages() {
       repliesHtml = replies.map(r => renderReply(r, i, replies, item)).join('');
     }
     const deleteNoteHtml = item.user === User.get() ? '<span class="note-delete" onclick="event.stopPropagation();deleteMessage(' + i + ')">×</span>' : '';
-    return '<div class="note ' + color + '" style="' + animStyle + '--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
+    return '<div class="note ' + color + '" style="--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
       '<span class="note-pin">📌</span>' + deleteNoteHtml +
       '<div class="note-text">' + escapeHtml(item.text) + (item.image_url ? '<img class="reply-img" src="' + item.image_url + '" onclick="event.stopPropagation();showImagePreview(\'' + item.image_url + '\')">' : '') + '</div>' +
       '<div class="note-time">' + (item.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳家希') + ' · ' + formatTime(item.time) + '</div>' +
