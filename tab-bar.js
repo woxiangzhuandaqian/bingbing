@@ -30,9 +30,12 @@
     .tab-item.active .tab-item-label { color: #43a047; font-weight: 600; }
     .tab-item:active { transform: scale(0.9); }
     .tab-badge {
-      position: absolute; top: 0; right: -4px;
-      width: 8px; height: 8px; border-radius: 50%;
+      position: absolute; top: -2px; right: -8px;
+      min-width: 16px; height: 16px; border-radius: 8px;
       background: #f44336; border: 1px solid white;
+      font-size: 10px; color: white; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 4px; box-sizing: border-box;
     }
     body { padding-bottom: 70px !important; }
   `;
@@ -63,6 +66,7 @@
           if (tabEl && !tabEl.classList.contains('active')) {
             var badge = document.createElement('span');
             badge.className = 'tab-badge';
+            badge.textContent = d.count > 99 ? '99+' : d.count;
             tabEl.appendChild(badge);
           }
         });
