@@ -192,7 +192,7 @@ function renderOrders() {
 }
 
 function getQuoteHtml(replyToId, replies) {
-  const orig = replies.find(r => r.id === replyToId);
+  const orig = replies.find(r => String(r.id) === String(replyToId));
   if (!orig) return '';
   const name = orig.user === 'bingbing' ? '🧊🧊' : '家希';
   const short = orig.text.length > 20 ? orig.text.substring(0, 20) + '...' : orig.text;

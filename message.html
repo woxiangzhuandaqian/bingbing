@@ -146,7 +146,7 @@ function renderMessages() {
 }
 
 function getMsgQuoteHtml(replyToId, replies, msg) {
-  const orig = replies.find(r => r.id === replyToId);
+  const orig = replies.find(r => String(r.id) === String(replyToId));
   if (orig) {
     const name = orig.user === 'bingbing' ? '🧊冰冰' : '张笨笨';
     const short = orig.text.length > 15 ? orig.text.substring(0, 15) + '...' : orig.text;
