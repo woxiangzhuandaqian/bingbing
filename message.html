@@ -256,7 +256,10 @@ async function deleteMessage(i) {
   if (!msg || msg.user !== User.get()) return;
   await DB.delete('messages', msg.id);
   _skipAnim = true;
-  loadMessages();
+  const board = document.getElementById('board');
+  const scrollTop = board.scrollTop;
+  await loadMessages();
+  board.scrollTop = scrollTop;
 }
 
 async function deleteReply(replyId) {
@@ -265,7 +268,10 @@ async function deleteReply(replyId) {
     headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
   });
   _skipAnim = true;
-  loadMessages();
+  const board = document.getElementById('board');
+  const scrollTop = board.scrollTop;
+  await loadMessages();
+  board.scrollTop = scrollTop;
 }
 
 async function replyTo(i) {
@@ -291,7 +297,11 @@ async function replyTo(i) {
   const d = new Date(orig.time);
   const origTime = d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');
   sendNotification('💬 回复留言\n原留言：' + orig.text + '\n留言时间：' + origTime + '\n回复内容：' + text);
-  loadMessages();
+  _skipAnim = true;
+  const board = document.getElementById('board');
+  const scrollTop = board.scrollTop;
+  await loadMessages();
+  board.scrollTop = scrollTop;
 }
 
 async function init() {
