@@ -116,6 +116,17 @@ async function checkAchievements(action) {
       const count = await getMessageCount();
       if (count >= 10) await unlockAchievement('msg_10');
     }
+    if (!unlocked.includes('msg_30')) {
+      const count = await getMessageCount();
+      if (count >= 30) await unlockAchievement('msg_30');
+    }
+  }
+
+  if (action === 'review') {
+    if (!unlocked.includes('review_10')) {
+      const count = await getReviewCount();
+      if (count >= 10) await unlockAchievement('review_10');
+    }
   }
 
   if (action === 'wishlist_done') {
@@ -161,6 +172,16 @@ async function getInteractionCount(action) {
   const user = User.get();
   if (!user) return 0;
   const res = await fetch(SUPABASE_URL + '/rest/v1/interactions?user=eq.' + user + '&action=eq.' + action + '&select=id', { headers: supabaseHeaders });
+  if (!res.ok) return 0;
+  const data = await res.json();
+  return data.length;
+}
+
+async function getReviewCount() {
+  if (typeof SUPABASE_URL === 'undefined') return 0;
+  const user = User.get();
+  if (!user) return 0;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/replies?user=eq.' + user + '&target_table=eq.orders&select=id', { headers: supabaseHeaders });
   if (!res.ok) return 0;
   const data = await res.json();
   return data.length;
