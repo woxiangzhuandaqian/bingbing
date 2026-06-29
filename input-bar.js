@@ -46,20 +46,25 @@ const InputBar = (() => {
 .input-bar-preview .input-bar-rm {
   margin-left: 6px; color: #f44336; cursor: pointer; font-size: 13px; vertical-align: middle;
 }
+.input-bar.compact { gap: 6px; }
+.input-bar.compact .input-bar-text { padding: 6px 10px; font-size: 12px; border-radius: 14px; border-width: 1px; }
+.input-bar.compact .input-bar-img { width: 28px; height: 28px; font-size: 16px; }
+.input-bar.compact .input-bar-send { width: 26px; height: 26px; font-size: 13px; }
+.input-bar.compact + .input-bar-preview img { max-height: 36px; }
 `;
     document.head.appendChild(style);
   }
 
   let _counter = 0;
 
-  function create({ container, placeholder, sendIcon, onSend, showImage }) {
+  function create({ container, placeholder, sendIcon, onSend, showImage, size }) {
     injectStyle();
     const id = 'ib-' + (++_counter);
     const icon = sendIcon || '➤';
     const hasImage = showImage !== false;
 
     const barEl = document.createElement('div');
-    barEl.className = 'input-bar';
+    barEl.className = 'input-bar' + (size === 'compact' ? ' compact' : '');
     barEl.id = id;
     barEl.innerHTML =
       '<input type="text" class="input-bar-text" placeholder="' + (placeholder || '说点什么~') + '" maxlength="200">' +
