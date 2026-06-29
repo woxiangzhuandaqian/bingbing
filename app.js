@@ -51,12 +51,15 @@ const ACHIEVEMENTS = [
   { id: 'wishlist_done', emoji: '💫', name: '心愿实现', desc: '第一个心愿菜品上线' },
   { id: 'msg_10', emoji: '📝', name: '留言达人', desc: '留言超过10条' },
   { id: 'random_5', emoji: '🎲', name: '随缘吃货', desc: '使用随机推荐5次' },
-  { id: 'streak_7', emoji: '💪', name: '铁杆吃货', desc: '连续7天点单', phase: 2 },
-  { id: 'order_10', emoji: '🏅', name: '十单元老', desc: '累计点单10次', phase: 2 },
-  { id: 'msg_30', emoji: '💬', name: '话痨本痨', desc: '留言超过30条', phase: 2 },
-  { id: 'wishlist_5', emoji: '🌟', name: '许愿达人', desc: '许了5个愿望', phase: 2 },
-  { id: 'review_10', emoji: '🍽️', name: '美食评论家', desc: '评价10次', phase: 2 },
-  { id: 'all_good', emoji: '⭐', name: '全五星好评', desc: '给所有菜品好评', phase: 2 },
+  { id: 'streak_7', emoji: '💪', name: '铁杆吃货', desc: '连续7天点单' },
+  { id: 'order_10', emoji: '🏅', name: '十单元老', desc: '累计点单10次' },
+  { id: 'msg_30', emoji: '💬', name: '话痨本痨', desc: '留言超过30条' },
+  { id: 'wishlist_5', emoji: '🌟', name: '许愿达人', desc: '许了5个愿望' },
+  { id: 'review_10', emoji: '🍽️', name: '美食评论家', desc: '评价10次' },
+  { id: 'all_good', emoji: '⭐', name: '全五星好评', desc: '给所有菜品好评' },
+  { id: 'night_owl', emoji: '🌙', name: '夜猫子', desc: '凌晨0-5点互动一次' },
+  { id: 'cat_full', emoji: '🐱', name: '猫猫满血', desc: '猫三项属性都达到100' },
+  { id: 'duo_day', emoji: '💕', name: '双人互动', desc: '两人同一天都留言' },
 ];
 
 async function getUnlockedAchievements() {
@@ -91,12 +94,23 @@ function showAchievementToast(id) {
 
 async function checkAchievements(action) {
   const unlocked = await getUnlockedAchievements();
+  const hour = new Date().getHours();
+
+  // 夜猫子: 凌晨0-5点任何互动
+  if (!unlocked.includes('night_owl') && hour >= 0 && hour < 5) {
+    await unlockAchievement('night_owl');
+  }
 
   if (action === 'order') {
     if (!unlocked.includes('first_order')) await unlockAchievement('first_order');
-    if (!unlocked.includes('streak_3')) {
+    if (!unlocked.includes('streak_3') || !unlocked.includes('streak_7')) {
       const streak = await getOrderStreak();
-      if (streak >= 3) await unlockAchievement('streak_3');
+      if (streak >= 3 && !unlocked.includes('streak_3')) await unlockAchievement('streak_3');
+      if (streak >= 7 && !unlocked.includes('streak_7')) await unlockAchievement('streak_7');
+    }
+    if (!unlocked.includes('order_10')) {
+      const count = await getOrderCount();
+      if (count >= 10) await unlockAchievement('order_10');
     }
   }
 
@@ -120,6 +134,11 @@ async function checkAchievements(action) {
       const count = await getMessageCount();
       if (count >= 30) await unlockAchievement('msg_30');
     }
+    // 双人互动: 两人同一天都留言
+    if (!unlocked.includes('duo_day')) {
+      const hasDuo = await checkDuoDay();
+      if (hasDuo) await unlockAchievement('duo_day');
+    }
   }
 
   if (action === 'review') {
@@ -127,10 +146,29 @@ async function checkAchievements(action) {
       const count = await getReviewCount();
       if (count >= 10) await unlockAchievement('review_10');
     }
+    if (!unlocked.includes('all_good')) {
+      const allGood = await checkAllGood();
+      if (allGood) await unlockAchievement('all_good');
+    }
+  }
+
+  if (action === 'wishlist') {
+    if (!unlocked.includes('wishlist_5')) {
+      const count = await getInteractionCount('wishlist');
+      if (count >= 5) await unlockAchievement('wishlist_5');
+    }
   }
 
   if (action === 'wishlist_done') {
     if (!unlocked.includes('wishlist_done')) await unlockAchievement('wishlist_done');
+  }
+
+  // 猫猫满血: 检查猫属性
+  if (action === 'feed_cat') {
+    if (!unlocked.includes('cat_full')) {
+      const full = await checkCatFull();
+      if (full) await unlockAchievement('cat_full');
+    }
   }
 }
 
@@ -185,6 +223,53 @@ async function getReviewCount() {
   if (!res.ok) return 0;
   const data = await res.json();
   return data.length;
+}
+
+async function getOrderCount() {
+  if (typeof SUPABASE_URL === 'undefined') return 0;
+  const user = User.get();
+  if (!user) return 0;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/orders?user=eq.' + user + '&select=id', { headers: supabaseHeaders });
+  if (!res.ok) return 0;
+  const data = await res.json();
+  return data.length;
+}
+
+async function checkDuoDay() {
+  if (typeof SUPABASE_URL === 'undefined') return false;
+  const today = new Date().toISOString().split('T')[0];
+  const startOfDay = new Date(today).getTime();
+  const endOfDay = startOfDay + 86400000;
+  const [res1, res2] = await Promise.all([
+    fetch(SUPABASE_URL + '/rest/v1/messages?user=eq.bingbing&time=gte.' + startOfDay + '&time=lt.' + endOfDay + '&select=id&limit=1', { headers: supabaseHeaders }),
+    fetch(SUPABASE_URL + '/rest/v1/messages?user=eq.jiaxi&time=gte.' + startOfDay + '&time=lt.' + endOfDay + '&select=id&limit=1', { headers: supabaseHeaders })
+  ]);
+  const d1 = res1.ok ? await res1.json() : [];
+  const d2 = res2.ok ? await res2.json() : [];
+  if (d1.length > 0 && d2.length > 0) return true;
+  const [r1, r2] = await Promise.all([
+    fetch(SUPABASE_URL + '/rest/v1/replies?user=eq.bingbing&target_table=eq.messages&time=gte.' + startOfDay + '&time=lt.' + endOfDay + '&select=id&limit=1', { headers: supabaseHeaders }),
+    fetch(SUPABASE_URL + '/rest/v1/replies?user=eq.jiaxi&target_table=eq.messages&time=gte.' + startOfDay + '&time=lt.' + endOfDay + '&select=id&limit=1', { headers: supabaseHeaders })
+  ]);
+  const rd1 = r1.ok ? await r1.json() : [];
+  const rd2 = r2.ok ? await r2.json() : [];
+  return (d1.length > 0 || rd1.length > 0) && (d2.length > 0 || rd2.length > 0);
+}
+
+async function checkAllGood() {
+  const ratings = Store.get('dish_ratings', {});
+  const allDishes = Object.keys(dishData);
+  return allDishes.length > 0 && allDishes.every(key => ratings[dishData[key].name] === 'good');
+}
+
+async function checkCatFull() {
+  if (typeof SUPABASE_URL === 'undefined') return false;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/pet_status?id=eq.1', { headers: supabaseHeaders });
+  if (!res.ok) return false;
+  const data = await res.json();
+  if (!data.length) return false;
+  const s = data[0];
+  return s.hunger >= 100 && s.water >= 100 && s.happiness >= 100;
 }
 
 // ====== 通知推送 ======

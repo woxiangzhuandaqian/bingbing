@@ -368,6 +368,7 @@ function feedCat() {
   petStatus.happiness = Math.min(100, petStatus.happiness + 1);
   updateStatusUI();
   savePetStatus();
+  checkCatFullAchievement();
 }
 
 function waterCat() {
@@ -375,12 +376,14 @@ function waterCat() {
   petStatus.happiness = Math.min(100, petStatus.happiness + 1);
   updateStatusUI();
   savePetStatus();
+  checkCatFullAchievement();
 }
 
 function boostHappy(n) {
   petStatus.happiness = Math.min(100, petStatus.happiness + n);
   updateStatusUI();
   savePetStatus();
+  checkCatFullAchievement();
 }
 
 function sleepCat() {
@@ -389,6 +392,13 @@ function sleepCat() {
   petStatus.happiness = Math.min(100, petStatus.happiness + 1);
   updateStatusUI();
   savePetStatus();
+  checkCatFullAchievement();
+}
+
+function checkCatFullAchievement() {
+  if (petStatus.hunger >= 100 && petStatus.water >= 100 && petStatus.happiness >= 100) {
+    checkAchievements('feed_cat');
+  }
 }
 
 async function savePetStatus() {
