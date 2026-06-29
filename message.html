@@ -137,7 +137,7 @@ function renderMessages() {
       '<div class="note-time">' + formatTime(item.time) + '</div>' +
       '<div class="note-replies">' + repliesHtml + hintHtml +
         '<div class="note-reply-input">' +
-          '<input id="reply-input-' + i + '" placeholder="回复~" maxlength="60" onkeydown="if(event.key===\'Enter\')replyTo(' + i + ')">' +
+          '<input id="reply-input-' + i + '" placeholder="回复~" onkeydown="if(event.key===\'Enter\')replyTo(' + i + ')">' +
           '<button onclick="replyTo(' + i + ')">➤</button>' +
         '</div>' +
       '</div>' +

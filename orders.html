@@ -183,7 +183,7 @@ function renderOrders() {
         '<div class="order-review-input">' +
           '<button class="order-review-btn good" onclick="submitOrderReview(' + idx + ',\'👍\')">👍</button>' +
           '<button class="order-review-btn bad" onclick="submitOrderReview(' + idx + ',\'👎\')">👎</button>' +
-          '<input id="order-review-' + idx + '" placeholder="说两句~" maxlength="50" onkeydown="if(event.key===\'Enter\')submitOrderReview(' + idx + ')">' +
+          '<input id="order-review-' + idx + '" placeholder="说两句~" onkeydown="if(event.key===\'Enter\')submitOrderReview(' + idx + ')">' +
           '<button class="order-review-btn" style="background:#66bb6a;color:white" onclick="submitOrderReview(' + idx + ')">➤</button>' +
         '</div>' +
       '</div>' +
