@@ -228,11 +228,15 @@ function getQuoteHtml(replyToId, replies) {
 }
 
 async function deleteOrderReply(replyId) {
-  await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
+  allOrderReplies = allOrderReplies.filter(r => String(r.id) !== String(replyId));
+  const container = document.getElementById('orders-list');
+  const scrollTop = container.scrollTop;
+  renderOrders();
+  container.scrollTop = scrollTop;
+  fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
     method: 'DELETE',
     headers: supabaseHeaders
   });
-  loadOrders();
 }
 
 function setReplyTarget(orderIdx, replyId, el) {

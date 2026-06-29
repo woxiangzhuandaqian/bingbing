@@ -304,25 +304,30 @@ async function loadMessages() {
 async function deleteMessage(i) {
   const msg = messages[i];
   if (!msg || msg.user !== User.get()) return;
-  await DB.delete('messages', msg.id);
+  messages.splice(i, 1);
   _skipAnim = true;
   const board = document.getElementById('board');
   const scrollTop = board.scrollTop;
-  await loadMessages();
+  renderMessages();
   board.scrollTop = scrollTop;
+  DB.delete('messages', msg.id);
 }
 
 async function deleteReply(replyId) {
-  await fetch(SB_URL + '/rest/v1/replies?id=eq.' + replyId, {
-    method: 'DELETE',
-    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  messages.forEach(m => {
+    if (m._replies) m._replies = m._replies.filter(r => String(r.id) !== String(replyId));
   });
   _skipAnim = true;
   const board = document.getElementById('board');
   const scrollTop = board.scrollTop;
-  await loadMessages();
+  renderMessages();
   board.scrollTop = scrollTop;
+  fetch(SB_URL + '/rest/v1/replies?id=eq.' + replyId, {
+    method: 'DELETE',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  });
 }
+
 
 async function replyTo(i) {
   const input = document.getElementById('reply-input-' + i);
