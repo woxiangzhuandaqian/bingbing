@@ -63,6 +63,8 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .dish-modal-btn:active { transform: scale(0.9); }
 .dish-modal-btn.good { background: #e8f5e9; }
 .dish-modal-btn.bad { background: #fce4ec; }
+.img-pick-btn { font-size: 16px; cursor: pointer; padding: 4px; opacity: 0.6; }
+.img-pick-btn:active { opacity: 1; }
 .dish-modal-hint { font-size: 11px; color: #ccc; margin-top: 12px; }
 .dish-modal-comments { margin-top: 14px; text-align: left; max-height: 120px; overflow-y: auto; }
 .dish-modal-comment { font-size: 12px; color: #555; line-height: 1.6; padding: 4px 0; border-bottom: 1px dashed #f0f0f0; }
@@ -353,7 +355,7 @@ function showDishRating(dish) {
     '<div class="dish-modal-comments">' + commentsHtml + '</div>' +
     '<div class="dish-modal-input">' +
       '<input id="dish-comment-input" placeholder="说点什么~" onkeydown="if(event.key===\'Enter\')addDishComment(\'' + dish + '\')">' +
-      '<label class="img-pick-btn" style="font-size:16px;cursor:pointer;padding:0 4px;opacity:0.6">🖼<input type="file" accept="image/*" style="display:none" onchange="previewDishImg(this)"></label>' +
+      '<label class="img-pick-btn">📷<input type="file" accept="image/*" style="display:none" onchange="previewDishImg(this)"></label>' +
       '<button onclick="addDishComment(\'' + dish + '\')">发送</button>' +
     '</div>' +
     '<div id="dish-img-preview" style="display:none;margin-top:4px;text-align:left"><img id="dish-img-thumb" style="max-height:40px;border-radius:6px"><span onclick="clearDishImg()" style="cursor:pointer;margin-left:4px;color:#f44336;font-size:12px">✕</span></div>' +
