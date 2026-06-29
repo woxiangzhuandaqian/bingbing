@@ -26,6 +26,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
   animation: slapOn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   transition: transform 0.2s;
 }
+.no-anim .note { animation: none !important; }
 .note:active { transform: scale(0.96) rotate(0deg) !important; }
 
 @keyframes slapOn {
@@ -159,14 +160,23 @@ function setMsgReplyTarget(msgIdx, replyId, el) {
   const textNode = el.querySelector('.reply-item-name');
   const fullText = el.textContent.trim();
   msgReplyTarget = { msgIdx: msgIdx, replyId: replyId, text: fullText };
-  renderMessages();
+  rerenderQuiet();
   const input = document.getElementById('reply-input-' + msgIdx);
   if (input) input.focus();
 }
 
 function cancelMsgReply() {
   msgReplyTarget = null;
+  rerenderQuiet();
+}
+
+function rerenderQuiet() {
+  const board = document.getElementById('board');
+  const scrollTop = board.scrollTop;
+  board.classList.add('no-anim');
   renderMessages();
+  board.scrollTop = scrollTop;
+  requestAnimationFrame(() => board.classList.remove('no-anim'));
 }
 
 async function addMessage() {

@@ -202,14 +202,20 @@ function getQuoteHtml(replyToId, replies) {
 function setReplyTarget(orderIdx, replyId, el) {
   const text = el.querySelector('.order-review-content').textContent;
   replyTarget = { orderIdx: orderIdx, replyId: replyId, text: text };
+  const container = document.getElementById('orders-list');
+  const scrollTop = container.scrollTop;
   renderOrders();
+  container.scrollTop = scrollTop;
   const input = document.getElementById('order-review-' + orderIdx);
   if (input) input.focus();
 }
 
 function cancelReply() {
   replyTarget = null;
+  const container = document.getElementById('orders-list');
+  const scrollTop = container.scrollTop;
   renderOrders();
+  container.scrollTop = scrollTop;
 }
 
 async function submitOrderReview(idx, emoji) {
