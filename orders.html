@@ -164,7 +164,8 @@ function renderOrders() {
     const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
     const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
     const delHtml = r.user === User.get() ? '<span class="review-delete" onclick="event.stopPropagation();deleteOrderReply(\'' + r.id + '\')">×</span>' : '';
-    return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span>' + delHtml + '</div>';
+    const imgHtml = r.image_url ? '<img style="max-width:100%;max-height:100px;border-radius:6px;margin-top:4px;display:block" src="' + r.image_url + '">' : '';
+    return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span>' + delHtml + imgHtml + '</div>';
   }
   container.innerHTML = allOrders.map((order, idx) => {
     const d = new Date(order.time);
@@ -209,8 +210,10 @@ function renderOrders() {
           '<button class="order-review-btn good" onclick="submitOrderReview(' + idx + ',\'👍\')">👍</button>' +
           '<button class="order-review-btn bad" onclick="submitOrderReview(' + idx + ',\'👎\')">👎</button>' +
           '<input id="order-review-' + idx + '" placeholder="说两句~" onkeydown="if(event.key===\'Enter\')submitOrderReview(' + idx + ')">' +
+          '<label style="font-size:14px;cursor:pointer;opacity:0.6">📷<input type="file" accept="image/*" style="display:none" onchange="previewOrderImg(this,' + idx + ')"></label>' +
           '<button class="order-review-btn" style="background:#66bb6a;color:white" onclick="submitOrderReview(' + idx + ')">➤</button>' +
         '</div>' +
+        '<div id="order-img-preview-' + idx + '" style="display:none;margin-top:4px;padding:0 4px"><img style="max-height:40px;border-radius:6px"><span onclick="clearOrderImg(' + idx + ')" style="margin-left:4px;color:#ccc;cursor:pointer;font-size:10px">✕</span></div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -251,15 +254,40 @@ function cancelReply() {
   container.scrollTop = scrollTop;
 }
 
+var _orderImgFiles = {};
+function previewOrderImg(input, idx) {
+  if (!input.files[0]) return;
+  _orderImgFiles[idx] = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var preview = document.getElementById('order-img-preview-' + idx);
+    preview.querySelector('img').src = e.target.result;
+    preview.style.display = 'flex';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function clearOrderImg(idx) {
+  delete _orderImgFiles[idx];
+  var preview = document.getElementById('order-img-preview-' + idx);
+  if (preview) preview.style.display = 'none';
+}
+
 async function submitOrderReview(idx, emoji) {
   const input = document.getElementById('order-review-' + idx);
   const text = input.value.trim();
   const reviewText = emoji ? (emoji + ' ' + (text || (emoji === '👍' ? '好评' : '差评'))) : text;
-  if (!reviewText) return;
+  const hasImg = !!_orderImgFiles[idx];
+  if (!reviewText && !hasImg) return;
   const user = User.get();
   if (!user) { await showIdentityPicker(); }
   input.value = '';
-  const body = { target_table: 'orders', target_id: allOrders[idx].id, text: reviewText, user: User.get(), time: Date.now() };
+  var imageUrl = null;
+  if (hasImg) {
+    imageUrl = await uploadImage(_orderImgFiles[idx]);
+    delete _orderImgFiles[idx];
+  }
+  const body = { target_table: 'orders', target_id: allOrders[idx].id, text: reviewText || '', user: User.get(), time: Date.now() };
+  if (imageUrl) body.image_url = imageUrl;
   if (replyTarget && replyTarget.orderIdx === idx) {
     body.reply_to = replyTarget.replyId;
   }

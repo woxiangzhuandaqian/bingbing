@@ -297,6 +297,41 @@ async function addUnread(tab) {
   }
 }
 
+// ====== 图片上传 ======
+function compressImage(file, maxWidth, quality) {
+  maxWidth = maxWidth || 800;
+  quality = quality || 0.7;
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        var w = img.width, h = img.height;
+        if (w > maxWidth) { h = h * maxWidth / w; w = maxWidth; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function(blob) { resolve(blob); }, 'image/jpeg', quality);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadImage(file) {
+  if (typeof SUPABASE_URL === 'undefined') return null;
+  var blob = await compressImage(file);
+  var fileName = Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.jpg';
+  var res = await fetch(SUPABASE_URL + '/storage/v1/object/images/' + fileName, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'image/jpeg' },
+    body: blob
+  });
+  if (!res.ok) return null;
+  return SUPABASE_URL + '/storage/v1/object/public/images/' + fileName;
+}
+
 // ====== 通知推送 ======
 const FEISHU_WEBHOOK = 'https://open.feishu.cn/open-apis/bot/v2/hook/af76aa3f-1c13-4b1f-903e-eb9deb174946';
 

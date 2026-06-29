@@ -56,6 +56,9 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 .reply-target-hint { font-size: 10px; color: #66bb6a; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
 .reply-target-hint .cancel-reply { color: #f44336; cursor: pointer; margin-left: 6px; }
 .reply-expand { font-size: 11px; color: #66bb6a; text-align: center; padding: 4px 0; cursor: pointer; }
+.img-pick-btn { font-size: 16px; cursor: pointer; padding: 4px; opacity: 0.6; }
+.img-pick-btn:active { opacity: 1; }
+.reply-img { max-width: 100%; max-height: 120px; border-radius: 8px; margin-top: 4px; display: block; }
 .note-reply-input {
   display: flex; gap: 4px; margin-top: 6px;
 }
@@ -104,8 +107,10 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 
 <div class="input-row">
   <input class="input-field" id="msg-input" placeholder="想说点什么~" maxlength="100">
+  <label class="img-pick-btn">📷<input type="file" accept="image/*" id="msg-img-input" style="display:none" onchange="previewMsgImg(this)"></label>
   <button class="input-submit" onclick="addMessage()">📌</button>
 </div>
+<div id="msg-img-preview" style="display:none;padding:8px 16px;"><img id="msg-img-thumb" style="max-height:60px;border-radius:8px;"><span onclick="clearMsgImg()" style="margin-left:6px;color:#ccc;cursor:pointer">✕</span></div>
 
 <script src="app.js?v=5"></script>
 <script src="supabase.js"></script>
@@ -130,7 +135,8 @@ function renderMessages() {
     const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
     const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
     const delHtml = r.user === User.get() ? '<span class="reply-delete" onclick="event.stopPropagation();deleteReply(\'' + r.id + '\')">×</span>' : '';
-    return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span>' + delHtml + '</div>';
+    const imgHtml = r.image_url ? '<img class="reply-img" src="' + r.image_url + '">' : '';
+    return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span>' + delHtml + imgHtml + '</div>';
   }
   board.innerHTML = messages.map((item, i) => {
     const color = COLORS[i % COLORS.length];
@@ -154,13 +160,15 @@ function renderMessages() {
     const deleteNoteHtml = item.user === User.get() ? '<span class="note-delete" onclick="event.stopPropagation();deleteMessage(' + i + ')">×</span>' : '';
     return '<div class="note ' + color + '" style="' + animStyle + '--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
       '<span class="note-pin">📌</span>' + deleteNoteHtml +
-      '<div class="note-text">' + escapeHtml(item.text) + '</div>' +
+      '<div class="note-text">' + escapeHtml(item.text) + (item.image_url ? '<img class="reply-img" src="' + item.image_url + '">' : '') + '</div>' +
       '<div class="note-time">' + (item.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳家希') + ' · ' + formatTime(item.time) + '</div>' +
       '<div class="note-replies">' + repliesHtml + hintHtml +
         '<div class="note-reply-input">' +
           '<input id="reply-input-' + i + '" placeholder="回复~" onkeydown="if(event.key===\'Enter\')replyTo(' + i + ')">' +
+          '<label class="img-pick-btn" style="font-size:14px">📷<input type="file" accept="image/*" style="display:none" onchange="previewReplyImg(this,' + i + ')"></label>' +
           '<button onclick="replyTo(' + i + ')">➤</button>' +
         '</div>' +
+        '<div id="reply-img-preview-' + i + '" style="display:none;margin-top:4px"><img style="max-height:40px;border-radius:6px"><span onclick="clearReplyImg(' + i + ')" style="margin-left:4px;color:#ccc;cursor:pointer;font-size:10px">✕</span></div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -205,13 +213,56 @@ function rerenderQuiet() {
   board.scrollTop = scrollTop;
 }
 
+var _msgImgFile = null;
+var _replyImgFiles = {};
+
+function previewMsgImg(input) {
+  if (!input.files[0]) return;
+  _msgImgFile = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('msg-img-thumb').src = e.target.result;
+    document.getElementById('msg-img-preview').style.display = 'flex';
+  };
+  reader.readAsDataURL(_msgImgFile);
+}
+function clearMsgImg() {
+  _msgImgFile = null;
+  document.getElementById('msg-img-preview').style.display = 'none';
+  document.getElementById('msg-img-input').value = '';
+}
+
+function previewReplyImg(input, i) {
+  if (!input.files[0]) return;
+  _replyImgFiles[i] = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var preview = document.getElementById('reply-img-preview-' + i);
+    preview.querySelector('img').src = e.target.result;
+    preview.style.display = 'flex';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function clearReplyImg(i) {
+  delete _replyImgFiles[i];
+  var preview = document.getElementById('reply-img-preview-' + i);
+  if (preview) preview.style.display = 'none';
+}
+
 async function addMessage() {
   if (User.isViewMode()) return;
   const input = document.getElementById('msg-input');
   const text = input.value.trim();
-  if (!text) return;
+  if (!text && !_msgImgFile) return;
   input.value = '';
-  const item = await DB.insert('messages', { text: text, time: Date.now() });
+  var imageUrl = null;
+  if (_msgImgFile) {
+    imageUrl = await uploadImage(_msgImgFile);
+    clearMsgImg();
+  }
+  const data = { text: text || '', time: Date.now() };
+  if (imageUrl) data.image_url = imageUrl;
+  const item = await DB.insert('messages', data);
   if (item) {
     messages.unshift(item);
     renderMessages();
@@ -276,11 +327,18 @@ async function deleteReply(replyId) {
 async function replyTo(i) {
   const input = document.getElementById('reply-input-' + i);
   const text = input.value.trim();
-  if (!text) return;
+  const hasImg = !!_replyImgFiles[i];
+  if (!text && !hasImg) return;
   const user = User.get();
   if (!user) { await showIdentityPicker(); }
   input.value = '';
-  const body = { target_table: 'messages', target_id: messages[i].id, text: text, user: User.get(), time: Date.now() };
+  var imageUrl = null;
+  if (hasImg) {
+    imageUrl = await uploadImage(_replyImgFiles[i]);
+    delete _replyImgFiles[i];
+  }
+  const body = { target_table: 'messages', target_id: messages[i].id, text: text || '', user: User.get(), time: Date.now() };
+  if (imageUrl) body.image_url = imageUrl;
   if (msgReplyTarget && msgReplyTarget.msgIdx === i) {
     body.reply_to = msgReplyTarget.replyId;
   }
