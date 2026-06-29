@@ -26,7 +26,6 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
   animation: slapOn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   transition: transform 0.2s;
 }
-.no-anim .note { animation: none !important; }
 .note:active { transform: scale(0.96) rotate(0deg) !important; }
 
 @keyframes slapOn {
@@ -111,6 +110,7 @@ const ROTATIONS = [-3, -1.5, 0, 1.5, 3, -2, 2];
 
 let messages = [];
 let msgReplyTarget = null; // { msgIdx, replyId, text }
+let _skipAnim = false;
 
 function renderMessages() {
   const board = document.getElementById('board');
@@ -118,6 +118,7 @@ function renderMessages() {
     board.innerHTML = '<div class="board-empty"><div class="board-empty-emoji">📌</div><div class="board-empty-text">还没有便利贴哦~<br>写点什么，我会看到的</div></div>';
     return;
   }
+  const animStyle = _skipAnim ? 'animation:none;' : '';
   board.innerHTML = messages.map((item, i) => {
     const color = COLORS[i % COLORS.length];
     const rotate = ROTATIONS[i % ROTATIONS.length];
@@ -132,7 +133,7 @@ function renderMessages() {
     const hintHtml = msgReplyTarget && msgReplyTarget.msgIdx === i
       ? '<div class="reply-target-hint">回复：' + escapeHtml(msgReplyTarget.text.substring(0, 15)) + '<span class="cancel-reply" onclick="cancelMsgReply()">✕</span></div>'
       : '';
-    return '<div class="note ' + color + '" style="--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
+    return '<div class="note ' + color + '" style="' + animStyle + '--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
       '<span class="note-pin">📌</span>' +
       '<div class="note-text">' + escapeHtml(item.text) + '</div>' +
       '<div class="note-time">' + formatTime(item.time) + '</div>' +
@@ -157,26 +158,32 @@ function getMsgQuoteHtml(replyToId, replies, msg) {
 }
 
 function setMsgReplyTarget(msgIdx, replyId, el) {
-  const textNode = el.querySelector('.reply-item-name');
   const fullText = el.textContent.trim();
   msgReplyTarget = { msgIdx: msgIdx, replyId: replyId, text: fullText };
-  rerenderQuiet();
+  _skipAnim = true;
+  const board = document.getElementById('board');
+  const scrollTop = board.scrollTop;
+  renderMessages();
+  board.scrollTop = scrollTop;
   const input = document.getElementById('reply-input-' + msgIdx);
   if (input) input.focus();
 }
 
 function cancelMsgReply() {
   msgReplyTarget = null;
-  rerenderQuiet();
+  _skipAnim = true;
+  const board = document.getElementById('board');
+  const scrollTop = board.scrollTop;
+  renderMessages();
+  board.scrollTop = scrollTop;
 }
 
 function rerenderQuiet() {
+  _skipAnim = true;
   const board = document.getElementById('board');
   const scrollTop = board.scrollTop;
-  board.classList.add('no-anim');
   renderMessages();
   board.scrollTop = scrollTop;
-  requestAnimationFrame(() => board.classList.remove('no-anim'));
 }
 
 async function addMessage() {
