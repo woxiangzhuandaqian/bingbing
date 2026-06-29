@@ -164,7 +164,7 @@ function renderOrders() {
     const who = order.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
     const replies = allOrderReplies.filter(r => r.target_id === order.id);
     let repliesHtml = '';
-    if (replies.length > 3) {
+    if (replies.length > 8) {
       const hidden = replies.slice(0, replies.length - 3);
       const visible = replies.slice(-3);
       repliesHtml += '<div class="reply-expand" onclick="var h=this.nextElementSibling;if(h.style.display===\'none\'){h.style.display=\'block\';this.textContent=\'收起 ▲\'}else{h.style.display=\'none\';this.textContent=\'展开更多（' + hidden.length + '条）▼\'}">展开更多（' + hidden.length + '条）▼</div>';
@@ -287,7 +287,7 @@ function showDishRating(dish) {
   if (comments.length === 0) {
     commentsHtml = '<div style="color:#ccc;font-size:12px;text-align:center">还没有评价~</div>';
   } else {
-    const showAll = comments.length <= 3;
+    const showAll = comments.length <= 8;
     const visible = showAll ? comments : comments.slice(-3);
     const hiddenCount = comments.length - visible.length;
     if (!showAll) {
