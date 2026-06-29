@@ -56,6 +56,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 .reply-quote { font-size: 10px; color: #999; padding: 1px 6px; border-left: 2px solid #ddd; background: rgba(0,0,0,0.03); border-radius: 0 4px 4px 0; margin-bottom: 2px; }
 .reply-target-hint { font-size: 10px; color: #66bb6a; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
 .reply-target-hint .cancel-reply { color: #f44336; cursor: pointer; margin-left: 6px; }
+.reply-expand { font-size: 11px; color: #66bb6a; text-align: center; padding: 4px 0; cursor: pointer; }
 .note-reply-input {
   display: flex; gap: 4px; margin-top: 6px;
 }
@@ -123,13 +124,36 @@ function renderMessages() {
     const color = COLORS[i % COLORS.length];
     const rotate = ROTATIONS[i % ROTATIONS.length];
     const replies = item._replies || [];
-    const repliesHtml = replies.map(r => {
-      const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
-      const t = new Date(r.time);
-      const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-      const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
-      return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
-    }).join('');
+    let repliesHtml = '';
+    if (replies.length > 3) {
+      const hidden = replies.slice(0, replies.length - 3);
+      const visible = replies.slice(-3);
+      repliesHtml += '<div class="reply-expand" onclick="this.nextElementSibling.style.display=\'block\';this.remove()">展开更多（' + hidden.length + '条）▼</div>';
+      repliesHtml += '<div style="display:none">';
+      repliesHtml += hidden.map(r => {
+        const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
+        const t = new Date(r.time);
+        const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+        const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
+        return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
+      }).join('');
+      repliesHtml += '</div>';
+      repliesHtml += visible.map(r => {
+        const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
+        const t = new Date(r.time);
+        const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+        const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
+        return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
+      }).join('');
+    } else {
+      repliesHtml = replies.map(r => {
+        const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
+        const t = new Date(r.time);
+        const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+        const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
+        return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
+      }).join('');
+    }
     const hintHtml = msgReplyTarget && msgReplyTarget.msgIdx === i
       ? '<div class="reply-target-hint">回复：' + escapeHtml(msgReplyTarget.text.substring(0, 15)) + '<span class="cancel-reply" onclick="cancelMsgReply()">✕</span></div>'
       : '';

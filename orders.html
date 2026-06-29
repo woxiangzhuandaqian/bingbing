@@ -97,6 +97,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 }
 .order-review-content { flex: 1; }
 .order-review-time { font-size: 10px; color: #ccc; flex-shrink: 0; margin-left: 8px; }
+.reply-expand { font-size: 11px; color: #66bb6a; text-align: center; padding: 4px 0; cursor: pointer; }
 .order-review-input {
   display: flex; gap: 6px; align-items: center;
 }
@@ -162,13 +163,36 @@ function renderOrders() {
     const eatLabel = (ed.getMonth()+1) + '月' + ed.getDate() + '日';
     const who = order.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
     const replies = allOrderReplies.filter(r => r.target_id === order.id);
-    const repliesHtml = replies.map(r => {
-      const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
-      const t = new Date(r.time);
-      const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-      const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
-      return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
-    }).join('');
+    let repliesHtml = '';
+    if (replies.length > 3) {
+      const hidden = replies.slice(0, replies.length - 3);
+      const visible = replies.slice(-3);
+      repliesHtml += '<div class="reply-expand" onclick="this.nextElementSibling.style.display=\'block\';this.remove()">展开更多（' + hidden.length + '条）▼</div>';
+      repliesHtml += '<div style="display:none">';
+      repliesHtml += hidden.map(r => {
+        const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
+        const t = new Date(r.time);
+        const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+        const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
+        return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
+      }).join('');
+      repliesHtml += '</div>';
+      repliesHtml += visible.map(r => {
+        const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
+        const t = new Date(r.time);
+        const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+        const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
+        return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
+      }).join('');
+    } else {
+      repliesHtml = replies.map(r => {
+        const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
+        const t = new Date(r.time);
+        const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+        const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
+        return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
+      }).join('');
+    }
     const hintHtml = replyTarget && replyTarget.orderIdx === idx
       ? '<div class="reply-target-hint">回复：' + replyTarget.text.substring(0, 20) + '<span class="cancel-reply" onclick="cancelReply()">✕</span></div>'
       : '';
