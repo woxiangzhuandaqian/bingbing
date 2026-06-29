@@ -67,6 +67,7 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 .dish-modal-comments { margin-top: 14px; text-align: left; max-height: 120px; overflow-y: auto; }
 .dish-modal-comment { font-size: 12px; color: #555; line-height: 1.6; padding: 4px 0; border-bottom: 1px dashed #f0f0f0; }
 .dish-modal-comment-name { color: #999; font-size: 11px; }
+.dish-modal-expand { font-size: 12px; color: #66bb6a; text-align: center; padding: 6px 0; cursor: pointer; }
 .dish-modal-input { display: flex; gap: 6px; margin-top: 12px; }
 .dish-modal-input input { flex: 1; padding: 8px 12px; border: 1px solid #eee; border-radius: 12px; font-size: 13px; outline: none; }
 .dish-modal-input input:focus { border-color: #66bb6a; }
@@ -258,12 +259,27 @@ function showDishRating(dish) {
   overlay.className = 'dish-modal-overlay';
   const current = getDishRating(dish);
   const comments = getDishComments(dish);
-  const commentsHtml = comments.length
-    ? comments.map(c => {
-        const name = c.user === 'bingbing' ? '🧊冰冰' : '家希';
+  let commentsHtml = '';
+  if (comments.length === 0) {
+    commentsHtml = '<div style="color:#ccc;font-size:12px;text-align:center">还没有评价~</div>';
+  } else {
+    const showAll = comments.length <= 10;
+    const visible = showAll ? comments : comments.slice(-3);
+    const hiddenCount = comments.length - visible.length;
+    if (!showAll) {
+      commentsHtml += '<div class="dish-modal-expand" onclick="this.parentElement.querySelector(\'.dish-modal-hidden\').style.display=\'block\';this.remove()">展开更多（' + hiddenCount + '条）▼</div>';
+      commentsHtml += '<div class="dish-modal-hidden" style="display:none">';
+      commentsHtml += comments.slice(0, hiddenCount).map(c => {
+        const name = c.user === 'bingbing' ? '🧊 冰冰宝宝' : '👨‍🍳 家希';
         return '<div class="dish-modal-comment"><span class="dish-modal-comment-name">' + name + '：</span>' + c.text.replace(/</g,'&lt;') + '</div>';
-      }).join('')
-    : '<div style="color:#ccc;font-size:12px;text-align:center">还没有评价~</div>';
+      }).join('');
+      commentsHtml += '</div>';
+    }
+    commentsHtml += visible.map(c => {
+      const name = c.user === 'bingbing' ? '🧊 冰冰宝宝' : '👨‍🍳 家希';
+      return '<div class="dish-modal-comment"><span class="dish-modal-comment-name">' + name + '：</span>' + c.text.replace(/</g,'&lt;') + '</div>';
+    }).join('');
+  }
   overlay.innerHTML = '<div class="dish-modal">' +
     '<div class="dish-modal-name">' + dish + '</div>' +
     '<div class="dish-modal-btns">' +
