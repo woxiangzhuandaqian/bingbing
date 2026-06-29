@@ -56,22 +56,8 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 .reply-target-hint { font-size: 10px; color: #66bb6a; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
 .reply-target-hint .cancel-reply { color: #f44336; cursor: pointer; margin-left: 6px; }
 .reply-expand { font-size: 11px; color: #66bb6a; text-align: center; padding: 4px 0; cursor: pointer; }
-.img-pick-btn { font-size: 16px; cursor: pointer; padding: 4px; opacity: 0.6; }
-.img-pick-btn:active { opacity: 1; }
+.note-bar-wrap { margin-top: 6px; }
 .reply-img { max-width: 100%; max-height: 120px; border-radius: 8px; margin-top: 4px; display: block; }
-.note-reply-input {
-  display: flex; gap: 4px; margin-top: 6px;
-}
-.note-reply-input input {
-  flex: 1; min-width: 0; padding: 4px 8px; border: 1px solid #ddd; border-radius: 10px;
-  font-size: 11px; outline: none; background: rgba(255,255,255,0.7);
-  box-sizing: border-box;
-}
-.note-reply-input button {
-  padding: 4px 10px; border: none; border-radius: 10px;
-  background: rgba(0,0,0,0.1); font-size: 14px; cursor: pointer; flex-shrink: 0;
-}
-}
 
 /* 便利贴颜色 */
 .note-yellow { background: #fff9c4; }
@@ -159,15 +145,21 @@ function renderMessages() {
       '<div class="note-text">' + escapeHtml(item.text) + (item.image_url ? '<img class="reply-img" src="' + item.image_url + '" onclick="event.stopPropagation();showImagePreview(\'' + item.image_url + '\')">' : '') + '</div>' +
       '<div class="note-time">' + (item.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳家希') + ' · ' + formatTime(item.time) + '</div>' +
       '<div class="note-replies">' + repliesHtml + hintHtml +
-        '<div class="note-reply-input">' +
-          '<input id="reply-input-' + i + '" placeholder="回复~" onkeydown="if(event.key===\'Enter\')replyTo(' + i + ')">' +
-          '<label class="img-pick-btn" style="font-size:14px">📷<input type="file" accept="image/*" style="display:none" onchange="previewReplyImg(this,' + i + ')"></label>' +
-          '<button onclick="replyTo(' + i + ')">➤</button>' +
-        '</div>' +
-        '<div id="reply-img-preview-' + i + '" style="display:none;margin-top:4px"><img style="max-height:40px;border-radius:6px"><span onclick="clearReplyImg(' + i + ')" style="margin-left:4px;color:#ccc;cursor:pointer;font-size:10px">✕</span></div>' +
+        '<div id="note-bar-' + i + '" class="note-bar-wrap"></div>' +
       '</div>' +
     '</div>';
   }).join('');
+  // 挂载 InputBar 到每个便利贴回复区
+  messages.forEach((item, i) => {
+    const wrap = document.getElementById('note-bar-' + i);
+    if (!wrap) return;
+    InputBar.create({
+      container: wrap,
+      placeholder: '说点什么~',
+      sendIcon: '➤',
+      onSend: function({ text, imageUrl }) { replyTo(i, text, imageUrl); }
+    });
+  });
 }
 
 function getMsgQuoteHtml(replyToId, replies, msg) {
@@ -216,26 +208,7 @@ const msgBar = InputBar.create({
   onSend: addMessage
 });
 
-var _replyImgFiles = {};
-var _replyImgUploadPromises = {};
-
-function previewReplyImg(input, i) {
-  if (!input.files[0]) return;
-  _replyImgFiles[i] = input.files[0];
-  _replyImgUploadPromises[i] = uploadImage(input.files[0]);
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var preview = document.getElementById('reply-img-preview-' + i);
-    preview.querySelector('img').src = e.target.result;
-    preview.style.display = 'flex';
-  };
-  reader.readAsDataURL(input.files[0]);
-}
-function clearReplyImg(i) {
-  delete _replyImgFiles[i];
-  var preview = document.getElementById('reply-img-preview-' + i);
-  if (preview) preview.style.display = 'none';
-}
+var _replyImgFiles = {}; // 保留兼容
 
 async function addMessage({ text, imageUrl }) {
   if (User.isViewMode()) return;
@@ -305,21 +278,10 @@ async function deleteReply(replyId) {
 }
 
 
-async function replyTo(i) {
-  const input = document.getElementById('reply-input-' + i);
-  const text = input.value.trim();
-  const hasImg = !!_replyImgFiles[i];
-  if (!text && !hasImg) return;
+async function replyTo(i, text, imageUrl) {
+  if (!text && !imageUrl) return;
   const user = User.get();
   if (!user) { await showIdentityPicker(); }
-  input.value = '';
-  var imageUrl = null;
-  if (_replyImgUploadPromises[i]) {
-    imageUrl = await _replyImgUploadPromises[i];
-    delete _replyImgFiles[i];
-    delete _replyImgUploadPromises[i];
-    delete _replyImgFiles[i];
-  }
   const body = { target_table: 'messages', target_id: messages[i].id, text: text || '', user: User.get(), time: Date.now() };
   if (imageUrl) body.image_url = imageUrl;
   if (msgReplyTarget && msgReplyTarget.msgIdx === i) {
