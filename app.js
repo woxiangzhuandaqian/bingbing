@@ -111,7 +111,7 @@ async function checkAchievements(action) {
     }
   }
 
-  if (action === 'message') {
+  if (action === 'message' || action === 'reply') {
     if (!unlocked.includes('msg_10')) {
       const count = await getMessageCount();
       if (count >= 10) await unlockAchievement('msg_10');
@@ -147,10 +147,13 @@ async function getMessageCount() {
   if (typeof SUPABASE_URL === 'undefined') return 0;
   const user = User.get();
   if (!user) return 0;
-  const res = await fetch(SUPABASE_URL + '/rest/v1/messages?user=eq.' + user + '&select=id', { headers: supabaseHeaders });
-  if (!res.ok) return 0;
-  const msgs = await res.json();
-  return msgs.length;
+  const [msgRes, replyRes] = await Promise.all([
+    fetch(SUPABASE_URL + '/rest/v1/messages?user=eq.' + user + '&select=id', { headers: supabaseHeaders }),
+    fetch(SUPABASE_URL + '/rest/v1/replies?user=eq.' + user + '&target_table=eq.messages&select=id', { headers: supabaseHeaders })
+  ]);
+  const msgs = msgRes.ok ? await msgRes.json() : [];
+  const replies = replyRes.ok ? await replyRes.json() : [];
+  return msgs.length + replies.length;
 }
 
 async function getInteractionCount(action) {
