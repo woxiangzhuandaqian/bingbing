@@ -174,18 +174,22 @@
     } catch (e) { return ''; }
   }
 
-  async function send({ text, imageUrl }) {
+  async function send({ text, imageUrl, imagePromise }) {
     if (isSending) return;
-    if (!text && !imageUrl) return;
+    if (!text && !imageUrl && !imagePromise) return;
 
+    // 先展示文本
+    if (text) addMsg(text, 'user');
+
+    // 图片异步等待
+    if (imagePromise) imageUrl = await imagePromise;
     if (imageUrl) {
       const imgDiv = document.createElement('div');
       imgDiv.className = 'chat-msg chat-msg-user';
-      imgDiv.innerHTML = (text ? text + '<br>' : '') + '<img src="' + imageUrl + '" style="max-width:160px;max-height:100px;border-radius:8px;margin-top:4px;display:block;cursor:pointer" onclick="showImagePreview(\'' + imageUrl + '\')">';
+      imgDiv.innerHTML = '<img src="' + imageUrl + '" style="max-width:160px;max-height:100px;border-radius:8px;display:block;cursor:pointer" onclick="showImagePreview(\'' + imageUrl + '\')">';
       document.getElementById('chat-panel-msgs').appendChild(imgDiv);
-    } else {
-      addMsg(text, 'user');
     }
+    if (!text && !imageUrl) return;
     saveChatMsg('user', text || '[图片]');
     isSending = true;
 

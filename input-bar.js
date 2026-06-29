@@ -109,18 +109,18 @@ const InputBar = (() => {
       if (previewImg.src) showImagePreview(previewImg.src);
     });
 
-    async function doSend() {
+    function doSend() {
       const text = textInput.value.trim();
       if (!text && !imgUploadPromise) return;
-      let imageUrl = '';
+      let imgPromise = null;
       if (imgUploadPromise) {
-        imageUrl = await imgUploadPromise;
+        imgPromise = imgUploadPromise;
         imgUploadPromise = null;
         previewEl.style.display = 'none';
         if (fileInput) fileInput.value = '';
       }
       textInput.value = '';
-      if (onSend) onSend({ text, imageUrl });
+      if (onSend) onSend({ text, imageUrl: '', imagePromise: imgPromise });
     }
 
     sendBtn.addEventListener('click', doSend);

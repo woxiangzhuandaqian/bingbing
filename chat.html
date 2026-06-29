@@ -99,18 +99,23 @@ function scrollToBottom() {
   el.scrollTop = el.scrollHeight;
 }
 
-async function sendMessage({ text, imageUrl }) {
+async function sendMessage({ text, imageUrl, imagePromise }) {
   if (isSending) return;
 
+  // 先展示文本消息
+  if (text) addMsg(text, 'user');
+
+  // 图片异步等待
+  if (imagePromise) imageUrl = await imagePromise;
   if (imageUrl) {
     const imgDiv = document.createElement('div');
     imgDiv.className = 'msg msg-user';
-    imgDiv.innerHTML = (text ? text + '<br>' : '') + '<img src="' + imageUrl + '" style="max-width:180px;max-height:120px;border-radius:8px;margin-top:4px;display:block;cursor:pointer" onclick="showImagePreview(\'' + imageUrl + '\')">';
+    imgDiv.innerHTML = '<img src="' + imageUrl + '" style="max-width:180px;max-height:120px;border-radius:8px;display:block;cursor:pointer" onclick="showImagePreview(\'' + imageUrl + '\')">';
     document.getElementById('messages').appendChild(imgDiv);
     scrollToBottom();
-  } else {
-    addMsg(text, 'user');
   }
+
+  if (!text && !imageUrl) return;
 
   isSending = true;
   chatBar.disable(true);

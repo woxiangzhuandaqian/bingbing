@@ -158,7 +158,7 @@ function renderMessages() {
       placeholder: '说点什么~',
       sendIcon: '➤',
       size: 'compact',
-      onSend: function({ text, imageUrl }) { replyTo(i, text, imageUrl); }
+      onSend: function({ text, imageUrl, imagePromise }) { replyTo(i, text, imageUrl, imagePromise); }
     });
   });
 }
@@ -211,9 +211,10 @@ const msgBar = InputBar.create({
 
 var _replyImgFiles = {}; // 保留兼容
 
-async function addMessage({ text, imageUrl }) {
+async function addMessage({ text, imageUrl, imagePromise }) {
   if (User.isViewMode()) return;
-  if (!text && !imageUrl) return;
+  if (!text && !imageUrl && !imagePromise) return;
+  if (imagePromise) imageUrl = await imagePromise;
   const data = { text: text || '', time: Date.now() };
   if (imageUrl) data.image_url = imageUrl;
   const item = await DB.insert('messages', data);
@@ -279,8 +280,9 @@ async function deleteReply(replyId) {
 }
 
 
-async function replyTo(i, text, imageUrl) {
-  if (!text && !imageUrl) return;
+async function replyTo(i, text, imageUrl, imagePromise) {
+  if (!text && !imageUrl && !imagePromise) return;
+  if (imagePromise) imageUrl = await imagePromise;
   const user = User.get();
   if (!user) { await showIdentityPicker(); }
   const body = { target_table: 'messages', target_id: messages[i].id, text: text || '', user: User.get(), time: Date.now() };

@@ -216,7 +216,7 @@ function renderOrders() {
       placeholder: '说点什么~',
       sendIcon: '➤',
       size: 'compact',
-      onSend: function({ text, imageUrl }) { submitOrderReview(idx, null, text, imageUrl); }
+      onSend: function({ text, imageUrl, imagePromise }) { submitOrderReview(idx, null, text, imageUrl, imagePromise); }
     });
   });
 }
@@ -260,14 +260,14 @@ function cancelReply() {
   container.scrollTop = scrollTop;
 }
 
-async function submitOrderReview(idx, emoji, text, imageUrl) {
+async function submitOrderReview(idx, emoji, text, imageUrl, imagePromise) {
   if (emoji) {
-    // 点击👍👎按钮时，从InputBar里取文本
     const barWrap = document.getElementById('order-bar-' + idx);
     const barInput = barWrap ? barWrap.querySelector('.input-bar-text') : null;
     text = barInput ? barInput.value.trim() : '';
     if (barInput) barInput.value = '';
   }
+  if (imagePromise) imageUrl = await imagePromise;
   const reviewText = emoji ? (emoji + ' ' + (text || (emoji === '👍' ? '好评' : '差评'))) : text;
   if (!reviewText && !imageUrl) return;
   const user = User.get();
@@ -338,7 +338,7 @@ function showDishRating(dish) {
     container: 'dish-input-wrap',
     placeholder: '说点什么~',
     sendIcon: '➤',
-    onSend: function({ text, imageUrl }) { addDishComment(dish, text, imageUrl); }
+    onSend: function({ text, imageUrl, imagePromise }) { addDishComment(dish, text, imageUrl, imagePromise); }
   });
 }
 
@@ -347,8 +347,9 @@ function getDishComments(dish) {
   return all[dish] || [];
 }
 
-function addDishComment(dish, text, imageUrl) {
-  if (!text && !imageUrl) return;
+async function addDishComment(dish, text, imageUrl, imagePromise) {
+  if (!text && !imageUrl && !imagePromise) return;
+  if (imagePromise) imageUrl = await imagePromise;
   const all = Store.get('dish_comments', {});
   if (!all[dish]) all[dish] = [];
   all[dish].push({ text: text || '', user: User.get(), time: Date.now(), image_url: imageUrl || '' });
