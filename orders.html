@@ -164,7 +164,7 @@ function renderOrders() {
     const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
     const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
     const delHtml = r.user === User.get() ? '<span class="review-delete" onclick="event.stopPropagation();deleteOrderReply(\'' + r.id + '\')">×</span>' : '';
-    const imgHtml = r.image_url ? '<img style="max-width:100%;max-height:100px;border-radius:6px;margin-top:4px;display:block" src="' + r.image_url + '">' : '';
+    const imgHtml = r.image_url ? '<img style="max-width:100%;max-height:100px;border-radius:6px;margin-top:4px;display:block;cursor:pointer" src="' + r.image_url + '" onclick="event.stopPropagation();showImagePreview(\'' + r.image_url + '\')">' : '';
     return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span>' + delHtml + imgHtml + '</div>';
   }
   container.innerHTML = allOrders.map((order, idx) => {

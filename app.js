@@ -332,6 +332,14 @@ async function uploadImage(file) {
   return SUPABASE_URL + '/storage/v1/object/public/images/' + fileName;
 }
 
+function showImagePreview(url) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease;';
+  overlay.innerHTML = '<img src="' + url + '" style="max-width:90%;max-height:85%;border-radius:8px;object-fit:contain">';
+  overlay.addEventListener('click', function() { overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
 // ====== 通知推送 ======
 const FEISHU_WEBHOOK = 'https://open.feishu.cn/open-apis/bot/v2/hook/af76aa3f-1c13-4b1f-903e-eb9deb174946';
 

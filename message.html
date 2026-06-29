@@ -135,7 +135,7 @@ function renderMessages() {
     const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
     const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
     const delHtml = r.user === User.get() ? '<span class="reply-delete" onclick="event.stopPropagation();deleteReply(\'' + r.id + '\')">×</span>' : '';
-    const imgHtml = r.image_url ? '<img class="reply-img" src="' + r.image_url + '">' : '';
+    const imgHtml = r.image_url ? '<img class="reply-img" src="' + r.image_url + '" onclick="event.stopPropagation();showImagePreview(\'' + r.image_url + '\')">' : '';
     return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span>' + delHtml + imgHtml + '</div>';
   }
   board.innerHTML = messages.map((item, i) => {
@@ -160,7 +160,7 @@ function renderMessages() {
     const deleteNoteHtml = item.user === User.get() ? '<span class="note-delete" onclick="event.stopPropagation();deleteMessage(' + i + ')">×</span>' : '';
     return '<div class="note ' + color + '" style="' + animStyle + '--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
       '<span class="note-pin">📌</span>' + deleteNoteHtml +
-      '<div class="note-text">' + escapeHtml(item.text) + (item.image_url ? '<img class="reply-img" src="' + item.image_url + '">' : '') + '</div>' +
+      '<div class="note-text">' + escapeHtml(item.text) + (item.image_url ? '<img class="reply-img" src="' + item.image_url + '" onclick="event.stopPropagation();showImagePreview(\'' + item.image_url + '\')">' : '') + '</div>' +
       '<div class="note-time">' + (item.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳家希') + ' · ' + formatTime(item.time) + '</div>' +
       '<div class="note-replies">' + repliesHtml + hintHtml +
         '<div class="note-reply-input">' +
