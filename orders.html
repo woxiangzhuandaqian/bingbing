@@ -333,13 +333,15 @@ function showDishRating(dish) {
       commentsHtml += '<div class="dish-modal-hidden" style="display:none">';
       commentsHtml += comments.slice(0, hiddenCount).map(c => {
         const name = c.user === 'bingbing' ? '🧊 冰冰宝宝' : '👨‍🍳 家希';
-        return '<div class="dish-modal-comment"><span class="dish-modal-comment-name">' + name + '：</span>' + c.text.replace(/</g,'&lt;') + '</div>';
+        const cImg = c.image_url ? '<img style="max-width:100%;max-height:80px;border-radius:6px;margin-top:4px;display:block;cursor:pointer" src="' + c.image_url + '" onclick="showImagePreview(\'' + c.image_url + '\')">' : '';
+        return '<div class="dish-modal-comment"><span class="dish-modal-comment-name">' + name + '：</span>' + c.text.replace(/</g,'&lt;') + cImg + '</div>';
       }).join('');
       commentsHtml += '</div>';
     }
     commentsHtml += visible.map(c => {
       const name = c.user === 'bingbing' ? '🧊 冰冰宝宝' : '👨‍🍳 家希';
-      return '<div class="dish-modal-comment"><span class="dish-modal-comment-name">' + name + '：</span>' + c.text.replace(/</g,'&lt;') + '</div>';
+      const cImg = c.image_url ? '<img style="max-width:100%;max-height:80px;border-radius:6px;margin-top:4px;display:block;cursor:pointer" src="' + c.image_url + '" onclick="showImagePreview(\'' + c.image_url + '\')">' : '';
+      return '<div class="dish-modal-comment"><span class="dish-modal-comment-name">' + name + '：</span>' + c.text.replace(/</g,'&lt;') + cImg + '</div>';
     }).join('');
   }
   overlay.innerHTML = '<div class="dish-modal">' +
@@ -351,8 +353,10 @@ function showDishRating(dish) {
     '<div class="dish-modal-comments">' + commentsHtml + '</div>' +
     '<div class="dish-modal-input">' +
       '<input id="dish-comment-input" placeholder="说点什么~" onkeydown="if(event.key===\'Enter\')addDishComment(\'' + dish + '\')">' +
+      '<label class="img-pick-btn" style="font-size:16px;cursor:pointer;padding:0 4px;opacity:0.6">🖼<input type="file" accept="image/*" style="display:none" onchange="previewDishImg(this)"></label>' +
       '<button onclick="addDishComment(\'' + dish + '\')">发送</button>' +
     '</div>' +
+    '<div id="dish-img-preview" style="display:none;margin-top:4px;text-align:left"><img id="dish-img-thumb" style="max-height:40px;border-radius:6px"><span onclick="clearDishImg()" style="cursor:pointer;margin-left:4px;color:#f44336;font-size:12px">✕</span></div>' +
     '<div class="dish-modal-hint">点击空白处关闭</div>' +
   '</div>';
   document.body.appendChild(overlay);
@@ -364,17 +368,45 @@ function getDishComments(dish) {
   return all[dish] || [];
 }
 
+let dishImgUploadPromise = null;
+
+function previewDishImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  dishImgUploadPromise = uploadImage(file);
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('dish-img-thumb').src = e.target.result;
+    document.getElementById('dish-img-preview').style.display = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearDishImg() {
+  dishImgUploadPromise = null;
+  document.getElementById('dish-img-preview').style.display = 'none';
+  document.getElementById('dish-img-thumb').src = '';
+}
+
 function addDishComment(dish) {
   const input = document.getElementById('dish-comment-input');
   const text = input.value.trim();
-  if (!text) return;
-  const all = Store.get('dish_comments', {});
-  if (!all[dish]) all[dish] = [];
-  all[dish].push({ text: text, user: User.get(), time: Date.now() });
-  Store.set('dish_comments', all);
-  document.querySelector('.dish-modal-overlay').remove();
-  showDishRating(dish);
-  sendNotification('💬 菜品评价：' + dish + ' → ' + text);
+  if (!text && !dishImgUploadPromise) return;
+  const doSubmit = async () => {
+    let image_url = '';
+    if (dishImgUploadPromise) {
+      image_url = await dishImgUploadPromise;
+      dishImgUploadPromise = null;
+    }
+    const all = Store.get('dish_comments', {});
+    if (!all[dish]) all[dish] = [];
+    all[dish].push({ text: text, user: User.get(), time: Date.now(), image_url: image_url });
+    Store.set('dish_comments', all);
+    document.querySelector('.dish-modal-overlay').remove();
+    showDishRating(dish);
+    sendNotification('💬 菜品评价：' + dish + ' → ' + (text || '[图片]'));
+  };
+  doSubmit();
 }
 
 function rateDish(dish, rating) {
