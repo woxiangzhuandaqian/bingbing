@@ -30,7 +30,7 @@
     .tab-item.active .tab-item-label { color: #43a047; font-weight: 600; }
     .tab-item:active { transform: scale(0.9); }
     .tab-badge {
-      position: absolute; top: -2px; right: -8px;
+      position: absolute; top: -2px; right: -12px;
       min-width: 16px; height: 16px; border-radius: 8px;
       background: #f44336; border: 1px solid white;
       font-size: 10px; color: white; font-weight: 600;
