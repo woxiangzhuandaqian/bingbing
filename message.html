@@ -105,15 +105,11 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 
 <div class="board" id="board"></div>
 
-<div class="input-row">
-  <input class="input-field" id="msg-input" placeholder="想说点什么~" maxlength="100">
-  <label class="img-pick-btn">📷<input type="file" accept="image/*" id="msg-img-input" style="display:none" onchange="previewMsgImg(this)"></label>
-  <button class="input-submit" onclick="addMessage()">📌</button>
-</div>
-<div id="msg-img-preview" style="display:none;padding:8px 16px;"><img id="msg-img-thumb" style="max-height:60px;border-radius:8px;"><span onclick="clearMsgImg()" style="margin-left:6px;color:#ccc;cursor:pointer">✕</span></div>
+<div class="input-row" id="msg-input-wrap"></div>
 
 <script src="app.js?v=5"></script>
 <script src="supabase.js"></script>
+<script src="input-bar.js"></script>
 <script>
 const COLORS = ['note-yellow', 'note-pink', 'note-blue', 'note-green', 'note-orange', 'note-purple'];
 const ROTATIONS = [-3, -1.5, 0, 1.5, 3, -2, 2];
@@ -213,28 +209,15 @@ function rerenderQuiet() {
   board.scrollTop = scrollTop;
 }
 
-var _msgImgFile = null;
-var _msgImgUploadPromise = null;
+const msgBar = InputBar.create({
+  container: 'msg-input-wrap',
+  placeholder: '想说点什么~',
+  sendIcon: '📌',
+  onSend: addMessage
+});
+
 var _replyImgFiles = {};
 var _replyImgUploadPromises = {};
-
-function previewMsgImg(input) {
-  if (!input.files[0]) return;
-  _msgImgFile = input.files[0];
-  _msgImgUploadPromise = uploadImage(_msgImgFile);
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    document.getElementById('msg-img-thumb').src = e.target.result;
-    document.getElementById('msg-img-preview').style.display = 'flex';
-  };
-  reader.readAsDataURL(_msgImgFile);
-}
-function clearMsgImg() {
-  _msgImgFile = null;
-  _msgImgUploadPromise = null;
-  document.getElementById('msg-img-preview').style.display = 'none';
-  document.getElementById('msg-img-input').value = '';
-}
 
 function previewReplyImg(input, i) {
   if (!input.files[0]) return;
@@ -254,17 +237,9 @@ function clearReplyImg(i) {
   if (preview) preview.style.display = 'none';
 }
 
-async function addMessage() {
+async function addMessage({ text, imageUrl }) {
   if (User.isViewMode()) return;
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
-  if (!text && !_msgImgFile) return;
-  input.value = '';
-  var imageUrl = null;
-  if (_msgImgUploadPromise) {
-    imageUrl = await _msgImgUploadPromise;
-    clearMsgImg();
-  }
+  if (!text && !imageUrl) return;
   const data = { text: text || '', time: Date.now() };
   if (imageUrl) data.image_url = imageUrl;
   const item = await DB.insert('messages', data);
@@ -286,10 +261,6 @@ function formatTime(ts) {
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-
-document.getElementById('msg-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') addMessage();
-});
 
 const SB_URL = 'https://ovjlremcavbqkcnejvit.supabase.co';
 const SB_KEY = 'sb_publishable_jckCjiypg2K_1YFRam5bDw_3qv4ESS8';
@@ -376,7 +347,7 @@ async function replyTo(i) {
 async function init() {
   await showIdentityPicker();
   if (User.isViewMode()) {
-    document.querySelector('.input-row').style.display = 'none';
+    document.getElementById('msg-input-wrap').style.display = 'none';
   }
   loadMessages();
 }
