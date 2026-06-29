@@ -67,16 +67,6 @@
 
     .chat-panel-input {
       padding: 10px 12px; border-top: 1px solid #f0f0f0;
-      display: flex; gap: 8px;
-    }
-    .chat-panel-input input {
-      flex: 1; padding: 8px 14px; border: 1.5px solid #e0e0e0;
-      border-radius: 20px; font-size: 13px; outline: none;
-    }
-    .chat-panel-input input:focus { border-color: #66bb6a; }
-    .chat-panel-input button {
-      width: 34px; height: 34px; border-radius: 50%; border: none;
-      background: #66bb6a; color: white; font-size: 16px; cursor: pointer;
     }
   `;
   document.head.appendChild(style);
@@ -101,12 +91,17 @@
     <div class="chat-panel-messages" id="chat-panel-msgs">
       <div class="chat-msg chat-msg-bot">嘿🧊🧊~ 想我了吗？今天想吃什么，跟我说就行，御厨随时待命 👨‍🍳</div>
     </div>
-    <div class="chat-panel-input">
-      <input id="chat-panel-input" placeholder="跟${randomNick}说点什么~" maxlength="200">
-      <button id="chat-panel-send">➤</button>
-    </div>
+    <div class="chat-panel-input" id="chat-panel-input-wrap"></div>
   `;
   document.body.appendChild(panel);
+
+  // 初始化 InputBar
+  const chatWidgetBar = InputBar.create({
+    container: 'chat-panel-input-wrap',
+    placeholder: '说点什么~',
+    sendIcon: '➤',
+    onSend: send
+  });
 
   // 点击气泡开关面板
   bubble.addEventListener('click', function(e) {
@@ -179,14 +174,19 @@
     } catch (e) { return ''; }
   }
 
-  async function send() {
+  async function send({ text, imageUrl }) {
     if (isSending) return;
-    const input = document.getElementById('chat-panel-input');
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = '';
-    addMsg(text, 'user');
-    saveChatMsg('user', text);
+    if (!text && !imageUrl) return;
+
+    if (imageUrl) {
+      const imgDiv = document.createElement('div');
+      imgDiv.className = 'chat-msg chat-msg-user';
+      imgDiv.innerHTML = (text ? text + '<br>' : '') + '<img src="' + imageUrl + '" style="max-width:160px;max-height:100px;border-radius:8px;margin-top:4px;display:block;cursor:pointer" onclick="showImagePreview(\'' + imageUrl + '\')">';
+      document.getElementById('chat-panel-msgs').appendChild(imgDiv);
+    } else {
+      addMsg(text, 'user');
+    }
+    saveChatMsg('user', text || '[图片]');
     isSending = true;
 
     const loading = document.createElement('div');
@@ -196,7 +196,8 @@
 
     try {
       const ctx = await getContext();
-      const fullText = ctx ? '[参考信息]\n' + ctx + '\n[冰冰宝宝说]\n' + text : text;
+      const msgText = imageUrl ? (text ? text + ' [图片]' : '[用户发送了一张图片]') : text;
+      const fullText = ctx ? '[参考信息]\n' + ctx + '\n[冰冰宝宝说]\n' + msgText : msgText;
 
       const body = {
         message: { content: { type: 'text', value: { showText: fullText } } },
@@ -280,9 +281,4 @@
   }
 
   loadChatHistory();
-
-  document.getElementById('chat-panel-send').addEventListener('click', send);
-  document.getElementById('chat-panel-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') send();
-  });
 })();

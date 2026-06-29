@@ -82,8 +82,18 @@
     }
   }
 
-  // 加载悬浮小助手
-  var chatScript = document.createElement('script');
-  chatScript.src = 'chat-widget.js';
-  document.body.appendChild(chatScript);
+  // 加载悬浮小助手（确保 input-bar.js 先加载）
+  function loadChatWidget() {
+    var chatScript = document.createElement('script');
+    chatScript.src = 'chat-widget.js';
+    document.body.appendChild(chatScript);
+  }
+  if (typeof InputBar !== 'undefined') {
+    loadChatWidget();
+  } else {
+    var ibScript = document.createElement('script');
+    ibScript.src = 'input-bar.js';
+    ibScript.onload = loadChatWidget;
+    document.body.appendChild(ibScript);
+  }
 })();
