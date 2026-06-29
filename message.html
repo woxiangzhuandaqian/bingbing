@@ -128,7 +128,7 @@ function renderMessages() {
     if (replies.length > 3) {
       const hidden = replies.slice(0, replies.length - 3);
       const visible = replies.slice(-3);
-      repliesHtml += '<div class="reply-expand" onclick="this.nextElementSibling.style.display=\'block\';this.remove()">展开更多（' + hidden.length + '条）▼</div>';
+      repliesHtml += '<div class="reply-expand" onclick="var h=this.nextElementSibling;if(h.style.display===\'none\'){h.style.display=\'block\';this.textContent=\'收起 ▲\'}else{h.style.display=\'none\';this.textContent=\'展开更多（' + hidden.length + '条）▼\'}">展开更多（' + hidden.length + '条）▼</div>';
       repliesHtml += '<div style="display:none">';
       repliesHtml += hidden.map(r => {
         const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
