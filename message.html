@@ -86,6 +86,11 @@ body { min-height: 100vh; display: flex; flex-direction: column; background: lin
 .board-empty-emoji { font-size: 48px; margin-bottom: 12px; }
 .board-empty-text { font-size: 14px; line-height: 1.8; }
 
+.note-delete { position: absolute; top: 6px; right: 8px; font-size: 12px; color: #ccc; cursor: pointer; opacity: 0.6; }
+.note-delete:active { opacity: 1; color: #f44336; }
+.reply-delete { font-size: 10px; color: #ccc; cursor: pointer; margin-left: 4px; }
+.reply-delete:active { color: #f44336; }
+
 /* 输入区 */
 .input-row { background: rgba(255,255,255,0.6); border-top: 1px solid rgba(0,0,0,0.05); }
 </style>
@@ -120,6 +125,14 @@ function renderMessages() {
     return;
   }
   const animStyle = _skipAnim ? 'animation:none;' : '';
+  function renderReply(r, i, replies, item) {
+    const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
+    const t = new Date(r.time);
+    const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+    const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
+    const delHtml = r.user === User.get() ? '<span class="reply-delete" onclick="event.stopPropagation();deleteReply(\'' + r.id + '\')">🗑️</span>' : '';
+    return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span>' + delHtml + '</div>';
+  }
   board.innerHTML = messages.map((item, i) => {
     const color = COLORS[i % COLORS.length];
     const rotate = ROTATIONS[i % ROTATIONS.length];
@@ -130,35 +143,18 @@ function renderMessages() {
       const visible = replies.slice(-3);
       repliesHtml += '<div class="reply-expand" onclick="var h=this.nextElementSibling;if(h.style.display===\'none\'){h.style.display=\'block\';this.textContent=\'收起 ▲\'}else{h.style.display=\'none\';this.textContent=\'展开更多（' + hidden.length + '条）▼\'}">展开更多（' + hidden.length + '条）▼</div>';
       repliesHtml += '<div style="display:none">';
-      repliesHtml += hidden.map(r => {
-        const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
-        const t = new Date(r.time);
-        const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-        const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
-        return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
-      }).join('');
+      repliesHtml += hidden.map(r => renderReply(r, i, replies, item)).join('');
       repliesHtml += '</div>';
-      repliesHtml += visible.map(r => {
-        const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
-        const t = new Date(r.time);
-        const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-        const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
-        return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
-      }).join('');
+      repliesHtml += visible.map(r => renderReply(r, i, replies, item)).join('');
     } else {
-      repliesHtml = replies.map(r => {
-        const name = r.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳张笨笨';
-        const t = new Date(r.time);
-        const timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-        const quoteHtml = r.reply_to ? getMsgQuoteHtml(r.reply_to, replies, item) : '';
-        return '<div class="reply-item" onclick="setMsgReplyTarget(' + i + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="reply-item-name">' + name + '：</span>' + escapeHtml(r.text) + ' <span style="color:#bbb;font-size:10px">' + timeStr + '</span></div>';
-      }).join('');
+      repliesHtml = replies.map(r => renderReply(r, i, replies, item)).join('');
     }
     const hintHtml = msgReplyTarget && msgReplyTarget.msgIdx === i
       ? '<div class="reply-target-hint">回复：' + escapeHtml(msgReplyTarget.text.substring(0, 15)) + '<span class="cancel-reply" onclick="cancelMsgReply()">✕</span></div>'
       : '';
+    const deleteNoteHtml = item.user === User.get() ? '<span class="note-delete" onclick="event.stopPropagation();deleteMessage(' + i + ')">🗑️</span>' : '';
     return '<div class="note ' + color + '" style="' + animStyle + '--rotate:' + rotate + 'deg;transform:rotate(' + rotate + 'deg)">' +
-      '<span class="note-pin">📌</span>' +
+      '<span class="note-pin">📌</span>' + deleteNoteHtml +
       '<div class="note-text">' + escapeHtml(item.text) + '</div>' +
       '<div class="note-time">' + (item.user === 'bingbing' ? '🧊冰冰宝宝' : '👨‍🍳家希') + ' · ' + formatTime(item.time) + '</div>' +
       '<div class="note-replies">' + repliesHtml + hintHtml +
@@ -253,6 +249,23 @@ async function loadMessages() {
     m._replies = allReplies.filter(r => r.target_id === m.id);
   });
   renderMessages();
+}
+
+async function deleteMessage(i) {
+  const msg = messages[i];
+  if (!msg || msg.user !== User.get()) return;
+  await DB.delete('messages', msg.id);
+  _skipAnim = true;
+  loadMessages();
+}
+
+async function deleteReply(replyId) {
+  await fetch(SB_URL + '/rest/v1/replies?id=eq.' + replyId, {
+    method: 'DELETE',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  });
+  _skipAnim = true;
+  loadMessages();
 }
 
 async function replyTo(i) {

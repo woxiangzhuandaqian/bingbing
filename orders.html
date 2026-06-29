@@ -91,6 +91,8 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 }
 .order-review-label { font-size: 12px; color: #aaa; margin-bottom: 6px; }
 .order-review-list { margin-bottom: 8px; }
+.review-delete { font-size: 10px; color: #ccc; cursor: pointer; margin-left: 4px; flex-shrink: 0; }
+.review-delete:active { color: #f44336; }
 .order-review-item {
   font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 4px;
   display: flex; justify-content: space-between; align-items: baseline;
@@ -155,6 +157,14 @@ function renderOrders() {
     container.innerHTML = '<div class="orders-empty"><div class="orders-empty-emoji">📋</div><div class="orders-empty-text">还没有点单记录~<br>去菜单页点几道菜吧</div></div>';
     return;
   }
+  function renderOrderReply(r, idx, replies) {
+    const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
+    const t = new Date(r.time);
+    const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
+    const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
+    const delHtml = r.user === User.get() ? '<span class="review-delete" onclick="event.stopPropagation();deleteOrderReply(\'' + r.id + '\')">🗑️</span>' : '';
+    return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span>' + delHtml + '</div>';
+  }
   container.innerHTML = allOrders.map((order, idx) => {
     const d = new Date(order.time);
     const timeStr = (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
@@ -169,29 +179,11 @@ function renderOrders() {
       const visible = replies.slice(-3);
       repliesHtml += '<div class="reply-expand" onclick="var h=this.nextElementSibling;if(h.style.display===\'none\'){h.style.display=\'block\';this.textContent=\'收起 ▲\'}else{h.style.display=\'none\';this.textContent=\'展开更多（' + hidden.length + '条）▼\'}">展开更多（' + hidden.length + '条）▼</div>';
       repliesHtml += '<div style="display:none">';
-      repliesHtml += hidden.map(r => {
-        const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
-        const t = new Date(r.time);
-        const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-        const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
-        return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
-      }).join('');
+      repliesHtml += hidden.map(r => renderOrderReply(r, idx, replies)).join('');
       repliesHtml += '</div>';
-      repliesHtml += visible.map(r => {
-        const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
-        const t = new Date(r.time);
-        const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-        const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
-        return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
-      }).join('');
+      repliesHtml += visible.map(r => renderOrderReply(r, idx, replies)).join('');
     } else {
-      repliesHtml = replies.map(r => {
-        const name = r.user === 'bingbing' ? '🧊🧊女王' : '👨‍🍳家希';
-        const t = new Date(r.time);
-        const tStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' + t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0') + ':' + t.getSeconds().toString().padStart(2,'0');
-        const quoteHtml = r.reply_to ? getQuoteHtml(r.reply_to, replies) : '';
-        return '<div class="order-review-item" onclick="setReplyTarget(' + idx + ',\'' + r.id + '\',this)">' + quoteHtml + '<span class="order-review-content">' + name + '：' + r.text.replace(/</g,'&lt;') + '</span><span class="order-review-time">' + tStr + '</span></div>';
-      }).join('');
+      repliesHtml = replies.map(r => renderOrderReply(r, idx, replies)).join('');
     }
     const hintHtml = replyTarget && replyTarget.orderIdx === idx
       ? '<div class="reply-target-hint">回复：' + replyTarget.text.substring(0, 20) + '<span class="cancel-reply" onclick="cancelReply()">✕</span></div>'
@@ -229,6 +221,14 @@ function getQuoteHtml(replyToId, replies) {
   const name = orig.user === 'bingbing' ? '🧊🧊' : '家希';
   const short = orig.text.length > 20 ? orig.text.substring(0, 20) + '...' : orig.text;
   return '<div class="reply-quote">' + name + '：' + short.replace(/</g,'&lt;') + '</div>';
+}
+
+async function deleteOrderReply(replyId) {
+  await fetch(SUPABASE_URL + '/rest/v1/replies?id=eq.' + replyId, {
+    method: 'DELETE',
+    headers: supabaseHeaders
+  });
+  loadOrders();
 }
 
 function setReplyTarget(orderIdx, replyId, el) {
