@@ -35,8 +35,35 @@ body { min-height: 100vh; display: flex; flex-direction: column; }
 }
 
 .order-card-item {
-  font-size: 13px; padding: 4px 10px; border-radius: 10px;
+  font-size: 13px; padding: 4px 10px; border-radius: 10px; cursor: pointer;
+  position: relative; transition: transform 0.15s;
 }
+.order-card-item:active { transform: scale(0.92); }
+.order-card-item .item-badge {
+  position: absolute; top: -6px; right: -6px; font-size: 10px;
+}
+
+.dish-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.dish-modal {
+  background: white; border-radius: 20px; padding: 28px 24px; text-align: center;
+  width: 80%; max-width: 280px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.dish-modal-name { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.dish-modal-btns { display: flex; gap: 16px; justify-content: center; }
+.dish-modal-btn {
+  padding: 12px 24px; border: none; border-radius: 14px; font-size: 20px;
+  cursor: pointer; transition: transform 0.15s;
+}
+.dish-modal-btn:active { transform: scale(0.9); }
+.dish-modal-btn.good { background: #e8f5e9; }
+.dish-modal-btn.bad { background: #fce4ec; }
+.dish-modal-hint { font-size: 11px; color: #ccc; margin-top: 12px; }
 .order-tag-0 { background: #f1f8e9; color: #558b2f; }
 .order-tag-1 { background: #fff3e0; color: #e65100; }
 .order-tag-2 { background: #e3f2fd; color: #1565c0; }
@@ -143,7 +170,11 @@ function renderOrders() {
         '<span class="order-card-time">' + who + ' · ' + timeStr + '</span>' +
       '</div>' +
       '<div class="order-card-items">' +
-        order.items.map((item, i) => '<span class="order-card-item order-tag-' + (i % 7) + '">' + item + '</span>').join('') +
+        order.items.map((item, i) => {
+          const rating = getDishRating(item);
+          const badge = rating ? '<span class="item-badge">' + (rating === 'good' ? '👍' : '👎') + '</span>' : '';
+          return '<span class="order-card-item order-tag-' + (i % 7) + '" onclick="event.stopPropagation();showDishRating(\'' + item + '\')">' + item + badge + '</span>';
+        }).join('') +
       '</div>' +
       '<div class="order-review">' +
         '<div class="order-review-label">顾客评价</div>' +
@@ -202,6 +233,42 @@ async function submitOrderReview(idx, emoji) {
   trackInteraction('review');
   sendNotification('⭐ 订单评价：' + reviewText);
   loadOrders();
+}
+
+function getDishRating(dish) {
+  const ratings = Store.get('dish_ratings', {});
+  return ratings[dish] || null;
+}
+
+function showDishRating(dish) {
+  const overlay = document.createElement('div');
+  overlay.className = 'dish-modal-overlay';
+  const current = getDishRating(dish);
+  overlay.innerHTML = '<div class="dish-modal">' +
+    '<div class="dish-modal-name">' + dish + '</div>' +
+    '<div class="dish-modal-btns">' +
+      '<button class="dish-modal-btn good" style="' + (current === 'good' ? 'box-shadow:0 0 0 2px #66bb6a' : '') + '" onclick="rateDish(\'' + dish + '\',\'good\')">👍</button>' +
+      '<button class="dish-modal-btn bad" style="' + (current === 'bad' ? 'box-shadow:0 0 0 2px #f44336' : '') + '" onclick="rateDish(\'' + dish + '\',\'bad\')">👎</button>' +
+    '</div>' +
+    '<div class="dish-modal-hint">' + (current ? '当前：' + (current === 'good' ? '👍好评' : '👎差评') + ' · ' : '') + '点击空白处关闭</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+}
+
+function rateDish(dish, rating) {
+  const ratings = Store.get('dish_ratings', {});
+  if (ratings[dish] === rating) {
+    delete ratings[dish];
+  } else {
+    ratings[dish] = rating;
+  }
+  Store.set('dish_ratings', ratings);
+  document.querySelector('.dish-modal-overlay').remove();
+  renderOrders();
+  if (ratings[dish]) {
+    sendNotification('🍽️ 菜品评价：' + dish + ' → ' + (rating === 'good' ? '👍好评' : '👎差评'));
+  }
 }
 
 showIdentityPicker().then(() => loadOrders());

@@ -70,8 +70,8 @@ let _titleTapTimer = null;
 document.getElementById('page-title').addEventListener('click', function() {
   _titleTapCount++;
   clearTimeout(_titleTapTimer);
-  _titleTapTimer = setTimeout(() => { _titleTapCount = 0; }, 2000);
-  if (_titleTapCount >= 5) {
+  _titleTapTimer = setTimeout(() => { _titleTapCount = 0; }, 3000);
+  if (_titleTapCount >= 3) {
     _titleTapCount = 0;
     showSwitchUser();
   }
