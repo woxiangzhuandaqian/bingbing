@@ -205,8 +205,8 @@ function renderOrders() {
           '<button class="order-review-btn good" onclick="submitOrderReview(' + idx + ',\'👍\')">👍</button>' +
           '<button class="order-review-btn bad" onclick="submitOrderReview(' + idx + ',\'👎\')">👎</button>' +
           '<input id="order-review-' + idx + '" class="input-bar-text" placeholder="说两句~" onkeydown="if(event.key===\'Enter\')submitOrderReview(' + idx + ')">' +
-          '<label class="input-bar-img" style="width:32px;height:32px;font-size:16px">📷<input type="file" accept="image/*" style="display:none" onchange="previewOrderImg(this,' + idx + ')"></label>' +
-          '<button class="input-bar-send" style="width:32px;height:32px;font-size:14px" onclick="submitOrderReview(' + idx + ')">➤</button>' +
+          '<label class="input-bar-img" style="width:28px;height:28px;font-size:16px">📷<input type="file" accept="image/*" style="display:none" onchange="previewOrderImg(this,' + idx + ')"></label>' +
+          '<button class="input-bar-send" style="width:26px;height:26px;font-size:12px" onclick="submitOrderReview(' + idx + ')">➤</button>' +
         '</div>' +
         '<div id="order-img-preview-' + idx + '" style="display:none;margin-top:4px;padding:0 4px"><img style="max-height:40px;border-radius:6px"><span onclick="clearOrderImg(' + idx + ')" style="margin-left:4px;color:#ccc;cursor:pointer;font-size:10px">✕</span></div>' +
       '</div>' +
