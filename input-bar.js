@@ -91,7 +91,7 @@ const InputBar = (() => {
         const reader = new FileReader();
         reader.onload = function(e) {
           previewImg.src = e.target.result;
-          previewEl.style.display = '';
+          previewEl.style.display = 'block';
         };
         reader.readAsDataURL(file);
       });
