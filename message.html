@@ -223,6 +223,7 @@ async function addMessage() {
   }
   checkAchievements('message');
   trackInteraction('message');
+  addUnread('message');
   sendNotification('💌🧊🧊留言：' + text);
 }
 
@@ -272,6 +273,7 @@ async function replyTo(i) {
   });
   msgReplyTarget = null;
   trackInteraction('reply');
+  addUnread('message');
   const orig = messages[i];
   const d = new Date(orig.time);
   const origTime = d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ':' + d.getSeconds().toString().padStart(2,'0');

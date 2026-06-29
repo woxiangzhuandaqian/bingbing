@@ -452,6 +452,7 @@ function confirmOrder() {
   DB.insert('orders', { items: items, eat_date: dateVal, time: Date.now() });
   trackInteraction('order');
   checkAchievements('order');
+  addUnread('orders');
   Store.set('cart', []);
   cart = [];
   setTimeout(() => {

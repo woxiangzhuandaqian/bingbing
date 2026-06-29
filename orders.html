@@ -269,6 +269,7 @@ async function submitOrderReview(idx, emoji) {
   });
   replyTarget = null;
   trackInteraction('review');
+  addUnread('orders');
   sendNotification('⭐ 订单评价：' + reviewText);
   loadOrders();
 }

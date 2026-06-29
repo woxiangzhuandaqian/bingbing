@@ -227,6 +227,7 @@ async function addWish() {
   }
   sendNotification('💫🧊🧊许了个愿：' + text);
   trackInteraction('wishlist');
+  addUnread('wishlist');
 }
 
 let currentWishIndex = -1;
@@ -307,6 +308,7 @@ async function markWishDone() {
   });
   sendNotification('🌟 心愿实现啦：' + item.text + '（已加入菜单）');
   trackInteraction('wish_done');
+  addUnread('wishlist');
   if (typeof checkAchievements !== 'undefined') checkAchievements('wishlist_done');
 }
 

@@ -272,6 +272,31 @@ async function checkCatFull() {
   return s.hunger >= 100 && s.water >= 100 && s.happiness >= 100;
 }
 
+// ====== 未读小红点 ======
+function getOtherUser() {
+  const me = User.get();
+  return me === 'bingbing' ? 'jiaxi' : me === 'jiaxi' ? 'bingbing' : null;
+}
+
+async function addUnread(tab) {
+  if (typeof SUPABASE_URL === 'undefined') return;
+  const targetUser = getOtherUser();
+  if (!targetUser) return;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/unread?user=eq.' + targetUser + '&tab=eq.' + tab, { headers: supabaseHeaders });
+  const data = res.ok ? await res.json() : [];
+  if (data.length > 0) {
+    fetch(SUPABASE_URL + '/rest/v1/unread?user=eq.' + targetUser + '&tab=eq.' + tab, {
+      method: 'PATCH', headers: supabaseHeaders,
+      body: JSON.stringify({ count: data[0].count + 1 })
+    });
+  } else {
+    fetch(SUPABASE_URL + '/rest/v1/unread', {
+      method: 'POST', headers: supabaseHeaders,
+      body: JSON.stringify({ user: targetUser, tab: tab, count: 1 })
+    });
+  }
+}
+
 // ====== 通知推送 ======
 const FEISHU_WEBHOOK = 'https://open.feishu.cn/open-apis/bot/v2/hook/af76aa3f-1c13-4b1f-903e-eb9deb174946';
 
