@@ -263,7 +263,7 @@ function showDishRating(dish) {
   if (comments.length === 0) {
     commentsHtml = '<div style="color:#ccc;font-size:12px;text-align:center">还没有评价~</div>';
   } else {
-    const showAll = comments.length <= 10;
+    const showAll = comments.length <= 3;
     const visible = showAll ? comments : comments.slice(-3);
     const hiddenCount = comments.length - visible.length;
     if (!showAll) {
