@@ -259,9 +259,11 @@ function cancelReply() {
 }
 
 var _orderImgFiles = {};
+var _orderImgUploadPromises = {};
 function previewOrderImg(input, idx) {
   if (!input.files[0]) return;
   _orderImgFiles[idx] = input.files[0];
+  _orderImgUploadPromises[idx] = uploadImage(input.files[0]);
   var reader = new FileReader();
   reader.onload = function(e) {
     var preview = document.getElementById('order-img-preview-' + idx);
@@ -286,8 +288,10 @@ async function submitOrderReview(idx, emoji) {
   if (!user) { await showIdentityPicker(); }
   input.value = '';
   var imageUrl = null;
-  if (hasImg) {
-    imageUrl = await uploadImage(_orderImgFiles[idx]);
+  if (_orderImgUploadPromises[idx]) {
+    imageUrl = await _orderImgUploadPromises[idx];
+    delete _orderImgFiles[idx];
+    delete _orderImgUploadPromises[idx];
     delete _orderImgFiles[idx];
   }
   const body = { target_table: 'orders', target_id: allOrders[idx].id, text: reviewText || '', user: User.get(), time: Date.now() };

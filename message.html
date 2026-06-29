@@ -214,11 +214,14 @@ function rerenderQuiet() {
 }
 
 var _msgImgFile = null;
+var _msgImgUploadPromise = null;
 var _replyImgFiles = {};
+var _replyImgUploadPromises = {};
 
 function previewMsgImg(input) {
   if (!input.files[0]) return;
   _msgImgFile = input.files[0];
+  _msgImgUploadPromise = uploadImage(_msgImgFile);
   var reader = new FileReader();
   reader.onload = function(e) {
     document.getElementById('msg-img-thumb').src = e.target.result;
@@ -228,6 +231,7 @@ function previewMsgImg(input) {
 }
 function clearMsgImg() {
   _msgImgFile = null;
+  _msgImgUploadPromise = null;
   document.getElementById('msg-img-preview').style.display = 'none';
   document.getElementById('msg-img-input').value = '';
 }
@@ -235,6 +239,7 @@ function clearMsgImg() {
 function previewReplyImg(input, i) {
   if (!input.files[0]) return;
   _replyImgFiles[i] = input.files[0];
+  _replyImgUploadPromises[i] = uploadImage(input.files[0]);
   var reader = new FileReader();
   reader.onload = function(e) {
     var preview = document.getElementById('reply-img-preview-' + i);
@@ -256,8 +261,8 @@ async function addMessage() {
   if (!text && !_msgImgFile) return;
   input.value = '';
   var imageUrl = null;
-  if (_msgImgFile) {
-    imageUrl = await uploadImage(_msgImgFile);
+  if (_msgImgUploadPromise) {
+    imageUrl = await _msgImgUploadPromise;
     clearMsgImg();
   }
   const data = { text: text || '', time: Date.now() };
@@ -338,8 +343,10 @@ async function replyTo(i) {
   if (!user) { await showIdentityPicker(); }
   input.value = '';
   var imageUrl = null;
-  if (hasImg) {
-    imageUrl = await uploadImage(_replyImgFiles[i]);
+  if (_replyImgUploadPromises[i]) {
+    imageUrl = await _replyImgUploadPromises[i];
+    delete _replyImgFiles[i];
+    delete _replyImgUploadPromises[i];
     delete _replyImgFiles[i];
   }
   const body = { target_table: 'messages', target_id: messages[i].id, text: text || '', user: User.get(), time: Date.now() };
